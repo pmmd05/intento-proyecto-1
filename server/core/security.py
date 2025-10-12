@@ -8,6 +8,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Encriptacion de la contraseña
 def hash_password(password: str) -> str:
+    # Validar longitud antes de hashear
+    if len(password.encode('utf-8')) > 72:
+        raise ValueError("La contraseña no puede exceder 72 bytes")
     return pwd_context.hash(password)
 
 # Verificacion de la contraseña

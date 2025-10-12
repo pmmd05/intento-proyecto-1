@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: postgres # Contraseña simple p/entorno DEV
       POSTGRES_DB: anima_db # DB que se crea al iniciar
     ports:
-    - "5432:5432" # Exponer puerto local
+    - "5433:5432" # Exponer puerto local
     volumes:
     - db_data:/var/lib/postgresql/data # Persistencia de datos
 volumes:

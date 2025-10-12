@@ -7,6 +7,12 @@ from sqlalchemy.orm import Session
 from server.db.models.user import User
 
 def register_user(db: Session, user: UserCreate) -> UserResponse:
+    # Validar longitud de contraseña para bcrypt
+    if len(user.password.encode('utf-8')) > 72:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña no puede exceder 72 bytes"
+        )
 
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
