@@ -36,7 +36,7 @@ const EmotionAnalyzer = () => {
       setAnalysisResult(result);
       setAnalyzedPhoto(photoData);
       
-      if (flash?.show) {
+      if (flash?.show) {  
         flash.show('¡Análisis completado con éxito!', 'success', 3000);
       }
       
