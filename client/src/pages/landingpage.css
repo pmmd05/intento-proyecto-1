@@ -1,3 +1,189 @@
+/* ============================================
+   LANDING PAGE - Página de inicio
+   ============================================ */
+
 .landingpage {
-  /* Add landing page specific styles here */
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Aplicar el gradient background igual que AnalyzePage */
+.landingpage-content {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+}
+
+/* Hero Section */
+.landing-hero {
+  text-align: center;
+  max-width: 800px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--black);
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.landing-highlight {
+  background: linear-gradient(135deg, 
+    var(--lilac-dark) 0%, 
+    var(--pink-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.landing-subtitle {
+  font-size: 1.5rem;
+  color: #4a5568;
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+}
+
+.landing-cta {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-button {
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  border: none;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cta-button.primary {
+  color: #fff;
+}
+
+.cta-button.secondary {
+  color: var(--black);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Features Section */
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 2rem;
+}
+
+.feature-card {
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+}
+
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.feature-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--black);
+}
+
+.feature-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0 0 0.5rem 0;
+}
+
+.feature-description {
+  font-size: 1rem;
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .landingpage-content {
+    padding: 3rem 1.5rem;
+  }
+
+  .landing-title {
+    font-size: 2.5rem;
+  }
+
+  .landing-subtitle {
+    font-size: 1.25rem;
+  }
+
+  .landing-cta {
+    flex-direction: column;
+  }
+
+  .cta-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .landing-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-title {
+    font-size: 2rem;
+  }
+
+  .landing-subtitle {
+    font-size: 1.125rem;
+  }
 }

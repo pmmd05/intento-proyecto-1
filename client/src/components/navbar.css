@@ -1,17 +1,21 @@
 .navbar {
-  --navbar-height: 64px; /* fallback height used for layout spacing */
-  background-color: #333;
-  color: #fff;
-  padding: 0 1rem; /* horizontal padding only; vertical centering handled by height */
+  --navbar-height: 64px;
+  /* 🆕 Efecto glass en lugar de fondo sólido */
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--black); /* 🆕 Cambiar de #fff a var(--black) */
+  padding: 0 1rem;
   height: var(--navbar-height);
-  position: fixed; /* keep navbar on screen */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000; /* sit above page content */
+  z-index: 1000;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); /* 🆕 Sombra más suave */
 }
 
 .navdiv {
@@ -28,7 +32,7 @@
 }
 
 .logo-btn {
-  color: #fff;
+  color: var(--black); /* 🆕 Cambiar de #fff a var(--black) */
   background: none;
   border: none;
   text-decoration: none;
@@ -70,8 +74,14 @@
 }
 
 .navlist li a {
-  color: #fff;
+  color: var(--black); /* 🆕 Cambiar de #fff a var(--black) */
   text-decoration: none;
+  font-weight: 500; /* 🆕 Agregar peso */
+  transition: color 0.3s ease; /* 🆕 Agregar transición */
+}
+
+.navlist li a:hover {
+  color: var(--lilac-dark); /* 🆕 Color hover */
 }
 
 .actions {
@@ -81,15 +91,22 @@
 }
 
 .btn {
-  background-color: #555;
-  color: #fff;
-  border: none;
+  background: rgba(255, 255, 255, 0.2); /* 🆕 Glass effect */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--black); /* 🆕 Cambiar de #fff */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* 🆕 Borde glass */
   padding: 0.5rem 1rem;
+  border-radius: 8px; /* 🆕 Más redondeado */
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .btn:hover {
-  background-color: #777;
+  background: rgba(255, 255, 255, 0.3); /* 🆕 Hover más visible */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Logo button should be transparent and not inherit the .btn background */
@@ -116,9 +133,21 @@
   display: block;
 }
 
-/* Mobile dropdown default hidden; only shown via media query when hamburger is visible */
 .mobile-dropdown {
   display: none;
+  position: absolute;
+  left: 0;
+  top: calc(var(--navbar-height));
+  width: 100%;
+  background: rgba(255, 255, 255, 0.15); /* 🆕 Glass effect */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--black); /* 🆕 Cambiar de #fff */
+  z-index: 35;
+  padding: 1rem 1rem 1.25rem 1rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
 }
 
 /* Hamburger button (hidden on desktop) */
@@ -254,11 +283,16 @@
   }
 
   .mobile-nav li a {
-    color: #fff;
-    text-decoration: none;
-    padding: 0.5rem 0.25rem;
-    display: block;
-  }
+  color: var(--black); /* 🆕 Cambiar de #fff */
+  text-decoration: none;
+  padding: 0.5rem 0.25rem;
+  display: block;
+  font-weight: 500;
+}
+
+.mobile-nav li a:hover {
+  color: var(--lilac-dark);
+}
 
   .mobile-actions {
     display: flex;
