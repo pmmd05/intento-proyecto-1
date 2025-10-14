@@ -81,6 +81,46 @@ function Landingpage() {
             </p>
           </GlassCard>
         </div>
+
+        {/* Stats Section - Nueva sección de estadísticas */}
+        <div className="landing-stats">
+          <GlassCard variant="lilac" className="stat-card">
+            <div className="stat-number">1000+</div>
+            <div className="stat-label">Análisis Realizados</div>
+          </GlassCard>
+          <GlassCard variant="pink" className="stat-card">
+            <div className="stat-number">95%</div>
+            <div className="stat-label">Precisión</div>
+          </GlassCard>
+          <GlassCard variant="blue" className="stat-card">
+            <div className="stat-number">24/7</div>
+            <div className="stat-label">Disponibilidad</div>
+          </GlassCard>
+        </div>
+
+        {/* How it works - Cómo funciona */}
+        <div className="landing-how-it-works">
+          <h2 className="section-title">¿Cómo funciona?</h2>
+          <div className="steps-container">
+            <div className="step-item">
+              <div className="step-number">1</div>
+              <h3>Captura tu emoción</h3>
+              <p>Toma una foto o sube una imagen</p>
+            </div>
+            <div className="step-arrow">→</div>
+            <div className="step-item">
+              <div className="step-number">2</div>
+              <h3>Análisis IA</h3>
+              <p>Detectamos tu estado emocional</p>
+            </div>
+            <div className="step-arrow">→</div>
+            <div className="step-item">
+              <div className="step-number">3</div>
+              <h3>Música perfecta</h3>
+              <p>Recibe recomendaciones personalizadas</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
