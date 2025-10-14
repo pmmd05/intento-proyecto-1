@@ -42,7 +42,7 @@ function Landingpage() {
 
         {/* Features */}
         <div className="landing-features">
-          <GlassCard variant="lilac" className="feature-card">
+          <GlassCard variant="default" className="feature-card">
             <div className="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -55,7 +55,7 @@ function Landingpage() {
             </p>
           </GlassCard>
 
-          <GlassCard variant="pink" className="feature-card">
+          <GlassCard variant="default" className="feature-card">
             <div className="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 18V5l12-2v13"></path>
@@ -69,7 +69,7 @@ function Landingpage() {
             </p>
           </GlassCard>
 
-          <GlassCard variant="blue" className="feature-card">
+          <GlassCard variant="default" className="feature-card">
             <div className="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
@@ -84,15 +84,15 @@ function Landingpage() {
 
         {/* Stats Section - Nueva sección de estadísticas */}
         <div className="landing-stats">
-          <GlassCard variant="lilac" className="stat-card">
+          <GlassCard variant="default" className="stat-card">
             <div className="stat-number">1000+</div>
             <div className="stat-label">Análisis Realizados</div>
           </GlassCard>
-          <GlassCard variant="pink" className="stat-card">
+          <GlassCard variant="default" className="stat-card">
             <div className="stat-number">95%</div>
             <div className="stat-label">Precisión</div>
           </GlassCard>
-          <GlassCard variant="blue" className="stat-card">
+          <GlassCard variant="default" className="stat-card">
             <div className="stat-number">24/7</div>
             <div className="stat-label">Disponibilidad</div>
           </GlassCard>

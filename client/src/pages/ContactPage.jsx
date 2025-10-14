@@ -119,7 +119,7 @@ function ContactPage() {
                 </svg>
               </div>
               <h3>Teléfono</h3>
-              <p>+502 1234-5678</p>
+              <p>+502 3003 9839</p>
             </GlassCard>
 
             <GlassCard variant="blue" className="info-card">

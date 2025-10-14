@@ -152,45 +152,23 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  /* Color base uniforme */
+  /* Estado normal - Color uniforme y sutil */
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Hover específico para cada feature */
-.feature-card.feature-facial:hover {
-  background: rgba(195, 196, 250, 0.25);
-  border-color: rgba(195, 196, 250, 0.5);
-  box-shadow: 0 12px 40px rgba(195, 196, 250, 0.4);
-}
-
-.feature-card.feature-music:hover {
-  background: rgba(255, 208, 231, 0.25);
-  border-color: rgba(255, 208, 231, 0.5);
-  box-shadow: 0 12px 40px rgba(255, 208, 231, 0.4);
-}
-
-.feature-card.feature-history:hover {
-  background: rgba(0, 136, 255, 0.25);
-  border-color: rgba(0, 136, 255, 0.5);
-  box-shadow: 0 12px 40px rgba(0, 136, 255, 0.4);
-}
-
+/* Hover - TODAS las cards usan lila intenso */
 .feature-card:hover {
+  background: rgba(139, 140, 245, 0.25);
+  border-color: rgba(139, 140, 245, 0.5);
+  box-shadow: 0 12px 40px rgba(139, 140, 245, 0.4);
   transform: translateY(-10px);
 }
 
-/* Icono con color al hover */
-.feature-card.feature-facial:hover .feature-icon {
-  background: rgba(195, 196, 250, 0.3);
-}
-
-.feature-card.feature-music:hover .feature-icon {
-  background: rgba(255, 208, 231, 0.3);
-}
-
-.feature-card.feature-history:hover .feature-icon {
-  background: rgba(0, 136, 255, 0.71);
+/* Icono con color lila al hover */
+.feature-card:hover .feature-icon {
+  background: rgba(139, 140, 245, 0.35);
+  transform: scale(1.1) rotate(5deg);
 }
 
 /* Efecto de brillo al hover */
@@ -211,10 +189,6 @@
   opacity: 1;
 }
 
-.feature-card:hover {
-  transform: translateY(-10px);
-}
-
 .feature-icon {
   width: 64px;
   height: 64px;
@@ -226,11 +200,6 @@
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
-}
-
-.feature-card:hover .feature-icon {
-  transform: scale(1.1) rotate(5deg);
-  background: rgba(255, 255, 255, 0.3);
 }
 
 .feature-icon svg {

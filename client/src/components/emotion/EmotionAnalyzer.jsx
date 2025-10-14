@@ -126,7 +126,7 @@ const EmotionAnalyzer = () => {
           {/* Opciones de captura - Grid 2 columnas */}
           <div className="analyzer-options">
             <GlassCard 
-              variant="pink"
+              variant="default"
               className="option-card"
               onClick={() => setMode('camera')}
             >
@@ -143,7 +143,7 @@ const EmotionAnalyzer = () => {
             </GlassCard>
 
             <GlassCard 
-              variant="blue"
+              variant="default"
               className="option-card"
               onClick={() => setMode('upload')}
             >
