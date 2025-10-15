@@ -8,4 +8,5 @@ python-jose
 bcrypt>=4.0.0
 passlib[bcrypt]
 requests == 2.32.5
+Pillow>=10.0.0
 #TODO: agregar la librería para reconocimiento facial

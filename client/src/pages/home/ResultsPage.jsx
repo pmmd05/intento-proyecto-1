@@ -9,6 +9,7 @@ const ResultsPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [useMockup, setUseMockup] = useState(false); // Flag para modo mockup
   
   const { result, photo } = location.state || {};
 
@@ -26,27 +27,48 @@ const ResultsPage = () => {
     try {
       const spotifyToken = localStorage.getItem('spotify_token');
       
-      if (!spotifyToken) {
-        console.log('No hay token de Spotify');
-        setLoading(false);
-        return;
+      // 🎭 Intentar primero con Spotify real, luego fallback a mockup
+      let url = '';
+      let headers = {};
+      
+      if (spotifyToken && !useMockup) {
+        // Modo Spotify Real
+        url = `http://127.0.0.1:8000/recommend?emotion=${result.emotion}`;
+        headers = { 'Authorization': `Bearer ${spotifyToken}` };
+        console.log('🎵 Intentando con Spotify real...');
+      } else {
+        // Modo Mockup
+        url = `http://127.0.0.1:8000/recommend/mockup?emotion=${result.emotion}`;
+        console.log('🎭 Usando recomendaciones mockup...');
       }
 
-      const response = await fetch(
-        `http://127.0.0.1:8000/recommend?emotion=${result.emotion}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${spotifyToken}`
-          }
-        }
-      );
+      const response = await fetch(url, { headers });
 
       if (response.ok) {
         const data = await response.json();
         setRecommendations(data.tracks || []);
+        
+        // Si tiene flag mockup, actualizar estado
+        if (data.mockup_mode) {
+          setUseMockup(true);
+          console.log('✅ Recomendaciones mockup cargadas');
+        } else {
+          console.log('✅ Recomendaciones de Spotify cargadas');
+        }
+      } else if (response.status === 401 && !useMockup) {
+        // Token expirado, cambiar a mockup
+        console.log('⚠️ Token de Spotify expirado, cambiando a mockup...');
+        setUseMockup(true);
+        fetchRecommendations(); // Reintentar con mockup
       }
     } catch (error) {
       console.error('Error:', error);
+      // En caso de error, intentar con mockup si no lo habíamos intentado
+      if (!useMockup) {
+        console.log('⚠️ Error con Spotify, cambiando a mockup...');
+        setUseMockup(true);
+        fetchRecommendations();
+      }
     } finally {
       setLoading(false);
     }
@@ -89,6 +111,12 @@ const ResultsPage = () => {
       <div className="results-content">
         <div className="results-header">
           <h1 className="results-title">Resultados del Análisis</h1>
+          {/* Badge de modo mockup */}
+          {useMockup && (
+            <div className="mockup-badge glass-salmon">
+              🎭 Modo Desarrollo
+            </div>
+          )}
         </div>
 
         <div className="results-grid">
@@ -126,10 +154,29 @@ const ResultsPage = () => {
           {/* Sección Derecha - Música */}
           <div className="music-section">
             <GlassCard variant="blue">
-              <h2 className="section-title">🎵 Recomendaciones Musicales</h2>
+              <div className="music-header">
+                <h2 className="section-title">🎵 Recomendaciones Musicales</h2>
+                {useMockup && (
+                  <p className="mockup-note">
+                    Datos de ejemplo para desarrollo. 
+                    <button 
+                      className="try-spotify-btn"
+                      onClick={() => {
+                        setUseMockup(false);
+                        fetchRecommendations();
+                      }}
+                    >
+                      Probar con Spotify
+                    </button>
+                  </p>
+                )}
+              </div>
               
               {loading ? (
-                <div className="loading-state">Cargando recomendaciones...</div>
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando recomendaciones...</p>
+                </div>
               ) : recommendations.length > 0 ? (
                 <div className="tracks-list">
                   {recommendations.slice(0, 15).map((track, index) => (
@@ -155,8 +202,17 @@ const ResultsPage = () => {
                   ))}
                 </div>
               ) : (
-                <div className="no-music">
-                  <p>Conecta tu cuenta de Spotify para obtener recomendaciones</p>
+                <div className="no-music glass">
+                  <p>No se pudieron cargar recomendaciones</p>
+                  <button 
+                    className="retry-button glass-pink"
+                    onClick={() => {
+                      setUseMockup(true);
+                      fetchRecommendations();
+                    }}
+                  >
+                    Usar Modo Mockup
+                  </button>
                 </div>
               )}
             </GlassCard>
@@ -165,7 +221,7 @@ const ResultsPage = () => {
 
         <div className="results-actions">
           <button 
-            className="glass-button primary"
+            className="glass-button primary glass-lilac"
             onClick={() => navigate('/home/analyze')}
           >
             🔄 Nuevo Análisis
