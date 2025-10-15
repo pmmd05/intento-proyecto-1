@@ -13,6 +13,9 @@ import AnalyzePage from './pages/home/AnalyzePage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import ResultsPage from './pages/home/ResultsPage';
+import HistoryPage from './pages/home/HistoryPage';
+import DashboardPage from './pages/home/DashboardPage';
+import RecommendationsPage from './pages/home/RecommendationsPage';
 
 function App() {
   const location = useLocation();
@@ -33,6 +36,9 @@ function App() {
               <Route path="account" element={<Account />} />
               <Route path="analyze" element={<AnalyzePage />} />
               <Route path="results" element={<ResultsPage />} />
+              <Route path="history" element={<HistoryPage />} />
+              <Route path="recommendations" element={<RecommendationsPage />} />
+              <Route path="dashboard" element={<DashboardPage />} />
               {/* TODO: Agregar rutas adicionales */}
               {/* <Route path="history" element={<HistoryPage />} /> */}
               {/* <Route path="recommendations" element={<RecommendationsPage />} /> */}
