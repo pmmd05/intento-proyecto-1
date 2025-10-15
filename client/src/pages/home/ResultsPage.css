@@ -1,3 +1,7 @@
+/* ============================================
+   RESULTS PAGE - Página de resultados mejorada
+   ============================================ */
+
 .results-page {
   min-height: 100vh;
   position: relative;
@@ -5,83 +9,187 @@
 
 .results-content {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .results-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .results-title {
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--black);
+  margin: 0;
   text-shadow: 0 2px 20px rgba(195, 196, 250, 0.3);
+  background: linear-gradient(135deg, var(--lilac-dark) 0%, var(--pink-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .results-grid {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
   gap: 2rem;
+  align-items: start;
 }
 
-.photo-section,
-.music-section {
+/* ============================================
+   SECCIÓN IZQUIERDA - Foto y Emociones
+   ============================================ */
+
+.photo-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  position: sticky;
+  top: 2rem;
+}
+
+.photo-container {
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    left: 100%;
+  }
 }
 
 .result-photo {
   width: 100%;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.result-photo:hover {
+  transform: scale(1.02);
 }
 
 .emotion-card {
   text-align: center;
-  padding: 2rem;
+  padding: 2.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.emotion-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(195, 196, 250, 0.15) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .emotion-icon {
-  font-size: 4rem;
+  font-size: 5rem;
   margin-bottom: 1rem;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  animation: float 3s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .emotion-label {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--black);
-  margin-bottom: 0.5rem;
-}
-
-.confidence {
-  font-size: 3rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--lilac) 0%, var(--pink) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.confidence-label {
-  font-size: 0.875rem;
-  color: #4a5568;
-  margin-top: 0.5rem;
-}
-
-.section-subtitle {
-  font-size: 1.25rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--black);
   margin-bottom: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.confidence {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--lilac-dark) 0%, var(--pink-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0.5rem 0;
+  position: relative;
+  z-index: 2;
+}
+
+.confidence-label {
+  font-size: 0.95rem;
+  color: #4a5568;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 2;
+}
+
+.emotions-breakdown-card {
+  padding: 2rem;
+}
+
+.section-subtitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-subtitle svg {
+  width: 24px;
+  height: 24px;
 }
 
 .emotions-breakdown {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .emotion-bar {
@@ -92,125 +200,379 @@
 
 .emotion-name {
   min-width: 100px;
-  font-weight: 500;
-  color: #4a5568;
+  font-weight: 600;
+  color: var(--black);
+  font-size: 0.95rem;
 }
 
 .progress-container {
   flex: 1;
-  height: 8px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
   overflow: hidden;
+  position: relative;
+}
+
+.progress-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-shimmer 2s infinite;
+}
+
+@keyframes progress-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--lilac) 0%, var(--pink) 100%);
-  border-radius: 4px;
-  transition: width 0.5s ease;
+  background: linear-gradient(90deg, var(--lilac-dark) 0%, var(--pink-dark) 100%);
+  border-radius: 10px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(139, 140, 245, 0.4);
 }
 
 .emotion-value {
-  min-width: 50px;
+  min-width: 55px;
   text-align: right;
-  font-weight: 600;
-  color: var(--black);
+  font-weight: 700;
+  color: var(--lilac-dark);
+  font-size: 1rem;
+}
+
+/* ============================================
+   SECCIÓN DERECHA - Recomendaciones Musicales
+   ============================================ */
+
+.music-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.music-container {
+  padding: 2rem;
+  min-height: 600px;
+  position: relative;
+  overflow: hidden;
+}
+
+.music-header {
+  margin-bottom: 2rem;
 }
 
 .section-title {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--black);
-  margin-bottom: 1rem;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.music-subtitle {
+  font-size: 1rem;
+  color: #4a5568;
+  margin: 0;
 }
 
 .tracks-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-height: 600px;
+  max-height: 650px;
   overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar personalizado */
+.tracks-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tracks-list::-webkit-scrollbar-track {
+  background: rgba(195, 196, 250, 0.1);
+  border-radius: 10px;
+}
+
+.tracks-list::-webkit-scrollbar-thumb {
+  background: rgba(195, 196, 250, 0.4);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.tracks-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(195, 196, 250, 0.6);
 }
 
 .track-card {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   align-items: center;
-  padding: 1rem;
-  border-radius: 12px;
+  padding: 1.25rem;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .track-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(195, 196, 250, 0.3);
+  transform: translateX(8px) translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(139, 140, 245, 0.4);
+  box-shadow: 0 8px 24px rgba(139, 140, 245, 0.25);
 }
 
 .album-cover {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
   object-fit: cover;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.track-card:hover .album-cover {
+  transform: scale(1.08);
 }
 
 .track-info {
   flex: 1;
+  min-width: 0;
 }
 
 .track-name {
   font-weight: 600;
   color: var(--black);
-  font-size: 1rem;
+  font-size: 1.05rem;
+  margin-bottom: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .artist-name {
   color: #4a5568;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.loading-state,
-.no-music {
-  text-align: center;
-  padding: 2rem;
-  color: #4a5568;
-}
-
-.results-actions {
+.track-play-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   display: flex;
-  gap: 1rem;
+  align-items: center;
   justify-content: center;
-  margin-top: 2rem;
-}
-
-.glass-button {
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  border: none;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
+  background: rgba(139, 140, 245, 0.15);
+  border-radius: 50%;
   transition: all 0.3s ease;
 }
 
-.glass-button.primary {
+.track-card:hover .track-play-icon {
+  background: rgba(139, 140, 245, 0.3);
+  transform: scale(1.1);
+}
+
+.track-play-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--lilac-dark);
+}
+
+/* Estados de carga y error */
+.loading-state,
+.no-music {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #4a5568;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(195, 196, 250, 0.2);
+  border-top-color: var(--lilac-dark);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state p,
+.no-music p {
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+/* ============================================
+   ACCIONES - Botones
+   ============================================ */
+
+.results-actions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.125rem 2.5rem;
+  border-radius: 14px;
+  border: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.action-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.action-button:hover::before {
+  left: 100%;
+}
+
+.action-button.primary {
   background: linear-gradient(135deg,
     rgba(195, 196, 250, 0.7) 0%,
     rgba(139, 140, 245, 0.7) 100%);
   color: #fff;
-  box-shadow: 0 4px 15px rgba(195, 196, 250, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.glass-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(195, 196, 250, 0.4);
+.action-button.primary:hover {
+  background: linear-gradient(135deg,
+    rgba(195, 196, 250, 0.9) 0%,
+    rgba(139, 140, 245, 0.9) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(139, 140, 245, 0.4);
 }
+
+.action-button svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.action-button:hover svg {
+  transform: scale(1.15);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
 
 @media (max-width: 968px) {
   .results-grid {
     grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .photo-section {
+    position: static;
+  }
+
+  .results-content {
+    padding: 1.5rem;
+  }
+
+  .results-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .results-content {
+    padding: 1rem;
+  }
+
+  .results-title {
+    font-size: 1.75rem;
+  }
+
+  .emotion-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .emotion-icon {
+    font-size: 4rem;
+  }
+
+  .confidence {
+    font-size: 3rem;
+  }
+
+  .music-container {
+    padding: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .track-card {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .album-cover {
+    width: 60px;
+    height: 60px;
+  }
+
+  .action-button {
+    padding: 1rem 2rem;
+    font-size: 1rem;
   }
 }

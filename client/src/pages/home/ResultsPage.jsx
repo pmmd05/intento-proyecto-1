@@ -9,7 +9,6 @@ const ResultsPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
-  const [useMockup, setUseMockup] = useState(false); // Flag para modo mockup
   
   const { result, photo } = location.state || {};
 
@@ -25,50 +24,20 @@ const ResultsPage = () => {
   const fetchRecommendations = async () => {
     setLoading(true);
     try {
-      const spotifyToken = localStorage.getItem('spotify_token');
+      // Usar endpoint mockup directamente
+      const url = `http://127.0.0.1:8000/recommend/mockup?emotion=${result.emotion}`;
       
-      // 🎭 Intentar primero con Spotify real, luego fallback a mockup
-      let url = '';
-      let headers = {};
-      
-      if (spotifyToken && !useMockup) {
-        // Modo Spotify Real
-        url = `http://127.0.0.1:8000/recommend?emotion=${result.emotion}`;
-        headers = { 'Authorization': `Bearer ${spotifyToken}` };
-        console.log('🎵 Intentando con Spotify real...');
-      } else {
-        // Modo Mockup
-        url = `http://127.0.0.1:8000/recommend/mockup?emotion=${result.emotion}`;
-        console.log('🎭 Usando recomendaciones mockup...');
-      }
-
-      const response = await fetch(url, { headers });
+      const response = await fetch(url);
 
       if (response.ok) {
         const data = await response.json();
         setRecommendations(data.tracks || []);
-        
-        // Si tiene flag mockup, actualizar estado
-        if (data.mockup_mode) {
-          setUseMockup(true);
-          console.log('✅ Recomendaciones mockup cargadas');
-        } else {
-          console.log('✅ Recomendaciones de Spotify cargadas');
-        }
-      } else if (response.status === 401 && !useMockup) {
-        // Token expirado, cambiar a mockup
-        console.log('⚠️ Token de Spotify expirado, cambiando a mockup...');
-        setUseMockup(true);
-        fetchRecommendations(); // Reintentar con mockup
+        console.log('✅ Recomendaciones cargadas:', data.tracks?.length || 0);
+      } else {
+        console.error('❌ Error al cargar recomendaciones:', response.status);
       }
     } catch (error) {
-      console.error('Error:', error);
-      // En caso de error, intentar con mockup si no lo habíamos intentado
-      if (!useMockup) {
-        console.log('⚠️ Error con Spotify, cambiando a mockup...');
-        setUseMockup(true);
-        fetchRecommendations();
-      }
+      console.error('❌ Error:', error);
     } finally {
       setLoading(false);
     }
@@ -111,18 +80,12 @@ const ResultsPage = () => {
       <div className="results-content">
         <div className="results-header">
           <h1 className="results-title">Resultados del Análisis</h1>
-          {/* Badge de modo mockup */}
-          {useMockup && (
-            <div className="mockup-badge glass-salmon">
-              🎭 Modo Desarrollo
-            </div>
-          )}
         </div>
 
         <div className="results-grid">
-          {/* Sección Izquierda */}
+          {/* Sección Izquierda - Foto y Emociones */}
           <div className="photo-section">
-            <GlassCard variant="lilac">
+            <GlassCard variant="lilac" className="photo-container">
               <img src={photo} alt="Tu foto" className="result-photo" />
             </GlassCard>
             
@@ -133,8 +96,14 @@ const ResultsPage = () => {
               <div className="confidence-label">Confianza</div>
             </GlassCard>
 
-            <GlassCard variant="salmon">
-              <h3 className="section-subtitle">Todas las emociones</h3>
+            <GlassCard variant="salmon" className="emotions-breakdown-card">
+              <h3 className="section-subtitle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Desglose Emocional
+              </h3>
               <div className="emotions-breakdown">
                 {Object.entries(result.emotions_detected)
                   .sort(([, a], [, b]) => b - a)
@@ -153,36 +122,27 @@ const ResultsPage = () => {
 
           {/* Sección Derecha - Música */}
           <div className="music-section">
-            <GlassCard variant="blue">
+            <GlassCard variant="blue" className="music-container">
               <div className="music-header">
-                <h2 className="section-title">🎵 Recomendaciones Musicales</h2>
-                {useMockup && (
-                  <p className="mockup-note">
-                    Datos de ejemplo para desarrollo. 
-                    <button 
-                      className="try-spotify-btn"
-                      onClick={() => {
-                        setUseMockup(false);
-                        fetchRecommendations();
-                      }}
-                    >
-                      Probar con Spotify
-                    </button>
-                  </p>
-                )}
+                <h2 className="section-title">
+                  🎵 Recomendaciones Musicales
+                </h2>
+                <p className="music-subtitle">
+                  Canciones seleccionadas especialmente para tu estado de ánimo
+                </p>
               </div>
               
               {loading ? (
                 <div className="loading-state">
                   <div className="loading-spinner"></div>
-                  <p>Cargando recomendaciones...</p>
+                  <p>Cargando tus recomendaciones...</p>
                 </div>
               ) : recommendations.length > 0 ? (
                 <div className="tracks-list">
                   {recommendations.slice(0, 15).map((track, index) => (
                     <div 
                       key={index}
-                      className="track-card glass"
+                      className="track-card"
                       onClick={() => window.open(track.external_urls?.spotify, '_blank')}
                     >
                       {track.album?.images?.[0]?.url && (
@@ -198,20 +158,26 @@ const ResultsPage = () => {
                           {track.artists?.map(a => a.name).join(', ')}
                         </div>
                       </div>
+                      <div className="track-play-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="no-music glass">
+                <div className="no-music">
                   <p>No se pudieron cargar recomendaciones</p>
                   <button 
-                    className="retry-button glass-pink"
-                    onClick={() => {
-                      setUseMockup(true);
-                      fetchRecommendations();
-                    }}
+                    className="action-button primary"
+                    onClick={fetchRecommendations}
                   >
-                    Usar Modo Mockup
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="1 4 1 10 7 10"></polyline>
+                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                    Reintentar
                   </button>
                 </div>
               )}
@@ -221,10 +187,14 @@ const ResultsPage = () => {
 
         <div className="results-actions">
           <button 
-            className="glass-button primary glass-lilac"
+            className="action-button primary"
             onClick={() => navigate('/home/analyze')}
           >
-            🔄 Nuevo Análisis
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+            Nuevo Análisis
           </button>
         </div>
       </div>
