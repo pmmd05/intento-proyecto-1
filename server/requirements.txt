@@ -3,7 +3,7 @@ uvicorn
 pydantic[email]
 pydantic-settings
 sqlalchemy
-psycopg2-binary
+psycopg[binary]
 python-jose
 passlib[bcrypt]
 requests == 2.32.5
