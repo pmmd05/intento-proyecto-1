@@ -12,6 +12,7 @@ import SignUpPage from './pages/auth/SignUpPage';
 import AnalyzePage from './pages/home/AnalyzePage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import ResultsPage from './pages/home/ResultsPage';
 
 function App() {
   const location = useLocation();
@@ -31,6 +32,7 @@ function App() {
               <Route index element={<Homepage />} />
               <Route path="account" element={<Account />} />
               <Route path="analyze" element={<AnalyzePage />} />
+              <Route path="results" element={<ResultsPage />} />
               {/* TODO: Agregar rutas adicionales */}
               {/* <Route path="history" element={<HistoryPage />} /> */}
               {/* <Route path="recommendations" element={<RecommendationsPage />} /> */}

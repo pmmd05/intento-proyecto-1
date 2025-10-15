@@ -40,6 +40,13 @@ const EmotionAnalyzer = () => {
         flash.show('¡Análisis completado con éxito!', 'success', 3000);
       }
       
+      // ⭐ NUEVA LÍNEA: Navegar a página de resultados
+      navigate('/home/results', { 
+        state: { 
+          result: result, 
+          photo: photoData 
+        } 
+      });
       // TODO: Navegar a página de resultados
       // navigate('/home/results', { state: { result, photo: photoData } });
       
