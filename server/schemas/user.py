@@ -1,17 +1,25 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 class UserCreate(BaseModel):
     name: str
     email: str
     password: str
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError('La contraseña no puede exceder 72 caracteres')
+        if len(v) < 8:
+            raise ValueError('La contraseña debe tener al menos 8 caracteres')
+        return v
 
 
 class UserResponse(BaseModel):
     id: int
     nombre: str
     email: EmailStr
-    message: str | None = None   # Campo opcional para mensajes adicionales
-
-
+    message: str | None = None
+    
     class Config:
         from_attributes = True

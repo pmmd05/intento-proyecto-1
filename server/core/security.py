@@ -1,21 +1,42 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from server.core.config import settings
 
-#Passlib contexto para el hashing de contraseñas
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Encriptacion de la contraseña
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    """
+    Hashea la contraseña usando bcrypt
+    """
+    # Validación adicional por si acaso
+    if len(password.encode('utf-8')) > 72:
+        password = password[:72]
+    
+    # Convertir a bytes y hashear
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    
+    # Retornar como string para almacenar en la BD
+    return hashed.decode('utf-8')
 
-# Verificacion de la contraseña
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    """
+    Verifica la contraseña contra el hash
+    """
+    try:
+        # Convertir a bytes
+        password_bytes = plain_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        
+        # Verificar
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except Exception:
+        return False
 
 
-# Generacion de token JWT
+# Generación de token JWT (sin cambios)
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
@@ -25,6 +46,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
+
 
 def verify_token(token: str) -> dict | None:
     try:
