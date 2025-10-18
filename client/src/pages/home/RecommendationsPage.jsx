@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../../components/sidebar/Sidebar';
 import GlassCard from '../../components/layout/GlassCard';
 import './RecommendationsPage.css';
@@ -16,15 +16,16 @@ const RecommendationsPage = () => {
     { value: 'energetic', label: 'Energético', emoji: '⚡', description: 'Ritmos vibrantes y dinámicos' }
   ];
 
-  useEffect(() => {
-    fetchRecommendations();
-  }, [selectedEmotion]);
-
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
     setLoading(true);
     try {
-      const url = `http://127.0.0.1:8000/recommend/mockup?emotion=${selectedEmotion}`;
-      const response = await fetch(url);
+      const protectedUrl = `http://127.0.0.1:8000/recommend?emotion=${selectedEmotion}`;
+      let response = await fetch(protectedUrl, { credentials: 'include' });
+
+      if (!response.ok) {
+        const fallbackUrl = `http://127.0.0.1:8000/recommend/mockup?emotion=${selectedEmotion}`;
+        response = await fetch(fallbackUrl);
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -36,7 +37,11 @@ const RecommendationsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEmotion]);
+
+  useEffect(() => {
+    fetchRecommendations();
+  }, [fetchRecommendations]);
 
   const getEmotionColor = (emotion) => {
     const colors = {

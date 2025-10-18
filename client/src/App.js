@@ -1,5 +1,5 @@
 import './App.css';
-import {Routes, Route, useLocation} from 'react-router-dom';
+import {Routes, Route} from 'react-router-dom';
 import { FlashProvider } from './components/flash/FlashContext';
 import FlashBanner from './components/flash/FlashBanner';
 import Homepage from './pages/homepage';
@@ -16,9 +16,9 @@ import ResultsPage from './pages/home/ResultsPage';
 import HistoryPage from './pages/home/HistoryPage';
 import DashboardPage from './pages/home/DashboardPage';
 import RecommendationsPage from './pages/home/RecommendationsPage';
+import SpotifyConnect from './pages/home/SpotifyConnect';
 
 function App() {
-  const location = useLocation();
 
   return (
     <FlashProvider>
@@ -39,6 +39,7 @@ function App() {
               <Route path="history" element={<HistoryPage />} />
               <Route path="recommendations" element={<RecommendationsPage />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="spotify-connect" element={<SpotifyConnect />} />
               {/* TODO: Agregar rutas adicionales */}
               {/* <Route path="history" element={<HistoryPage />} /> */}
               {/* <Route path="recommendations" element={<RecommendationsPage />} /> */}

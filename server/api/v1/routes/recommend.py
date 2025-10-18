@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Header, HTTPException
+from fastapi import APIRouter, Depends, Query, Header, HTTPException, Request
 from server.controllers.recommend_controller import recommend_songs_by_emotion
 import requests
 import json
@@ -9,26 +9,32 @@ router = APIRouter(prefix="/recommend", tags=["recommendations"])
 
 @router.get("/")
 def get_recommendations(
+    request: Request,
     emotion: str = Query(...),
-    authorization: str = Header(..., alias="Authorization")
+    authorization: str = Header(None, alias="Authorization")
 ):
     """
     Devuelve una lista de canciones recomendadas según la emoción.
     - emotion: happy, sad, angry, relaxed, energetic
     - authorization: Header Authorization con formato "Bearer TU_TOKEN"
     """
-    # Verificar que el header Authorization esté presente y tenga el formato correcto
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401, 
-            detail="Token inválido o ausente. Formato requerido: 'Bearer TU_TOKEN'"
-        )
+    token = None
 
-    # Extraer el token (quitar "Bearer ")
-    token = authorization.split(" ")[1].strip()
-    
+    # Prefer Authorization header
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1].strip()
+
+    # If no header token, attempt to retrieve httpOnly cookie set by OAuth callback
     if not token:
-        raise HTTPException(status_code=401, detail="Token vacío")
+        cookie_token = request.cookies.get('spotify_access_token')
+        if cookie_token:
+            token = cookie_token
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Token inválido o ausente. Envíe Authorization header o configure Spotify (conexión)."
+        )
 
     return recommend_songs_by_emotion(token, emotion)
 

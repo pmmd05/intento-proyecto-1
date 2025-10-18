@@ -12,6 +12,7 @@ export default function Account() {
   const navigate = useNavigate();
   const { user, loading: userLoading } = useCurrentUser();
   const [isEditing, setIsEditing] = useState(false);
+  const [spotifyConnected, setSpotifyConnected] = useState(false);
   const [formData, setFormData] = useState({
     nombre: '',
     email: ''
@@ -35,6 +36,24 @@ export default function Account() {
       });
     }
   }, [user]);
+
+  // Fetch Spotify connection status
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/v1/auth/spotify/status', {
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSpotifyConnected(!!data.connected);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    checkStatus();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,6 +88,45 @@ export default function Account() {
         flashType: 'success'
       }
     });
+  };
+
+  const handleConnectSpotify = () => {
+    // Generate state and redirect directly to backend OAuth endpoint
+    const state = Math.random().toString(36).substring(7);
+    localStorage.setItem('spotify_state', state);
+    window.location.href = `http://127.0.0.1:8000/v1/auth/spotify?state=${state}`;
+  };
+
+  const handleDisconnectSpotify = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/v1/auth/spotify/disconnect', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        setSpotifyConnected(false);
+        if (flash?.show) {
+          flash.show('Desconectado de Spotify', 'success', 3000);
+        }
+      }
+    } catch (e) {
+      if (flash?.show) {
+        flash.show('No se pudo desconectar de Spotify', 'error', 3000);
+      }
+    }
+  };
+
+  const handleRevokeSpotify = () => {
+    // No hay endpoint oficial para revocar vía API; abrimos la página de apps de Spotify
+    try {
+      window.open('https://www.spotify.com/account/apps/', '_blank', 'noopener,noreferrer');
+      if (flash?.show) {
+        flash.show('Abriendo la página de Spotify para revocar acceso.', 'info', 5000);
+      }
+    } catch (_) {
+      // fallback: navegar en la misma pestaña
+      window.location.href = 'https://www.spotify.com/account/apps/';
+    }
   };
 
   if (userLoading) {
@@ -245,6 +303,25 @@ export default function Account() {
             </h3>
             
             <div className="actions-list">
+              {spotifyConnected ? (
+                <button className="action-item" onClick={handleDisconnectSpotify}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+                    <path d="M7 11.5c2.5-1.5 5.5-1.5 8 0" />
+                    <path d="M6.5 14.5c3-1.8 7-1.8 10 0" />
+                  </svg>
+                  <span>Desconectar Spotify</span>
+                </button>
+              ) : (
+                <button className="action-item spotify" onClick={handleConnectSpotify}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+                    <path d="M7 11.5c2.5-1.5 5.5-1.5 8 0" />
+                    <path d="M6.5 14.5c3-1.8 7-1.8 10 0" />
+                  </svg>
+                  <span>Conectar con Spotify</span>
+                </button>
+              )}
               <button className="action-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -274,6 +351,7 @@ export default function Account() {
                 </svg>
                 <span>Cerrar sesión</span>
               </button>
+
             </div>
           </GlassCard>
         </div>

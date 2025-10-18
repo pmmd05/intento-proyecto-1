@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GlassCard from '../layout/GlassCard';
 import CameraCapture from './CameraCapture';
@@ -24,10 +24,47 @@ const EmotionAnalyzer = () => {
   // Mostrar el nombre del usuario o un placeholder mientras carga
   const displayName = user?.nombre || 'Usuario';
 
+  // Resume flow after Spotify connect if a pending photo exists
+  const resumedRef = useRef(false);
+  useEffect(() => {
+    if (resumedRef.current) return;
+    try {
+      const reason = sessionStorage.getItem('connect_reason');
+      const pending = sessionStorage.getItem('pending_analyze_photo');
+      if (reason === 'analyze' && pending) {
+        resumedRef.current = true;
+        // Clear markers before proceeding to avoid repeats
+        sessionStorage.removeItem('connect_reason');
+        sessionStorage.removeItem('return_to');
+        sessionStorage.removeItem('pending_analyze_photo');
+        handleAnalyzeImage(pending);
+      }
+    } catch (_) {}
+  }, []);
+
   const handleAnalyzeImage = async (photoData) => {
     setIsAnalyzing(true);
     
     try {
+      // Ensure Spotify is connected before analyzing
+      try {
+        const res = await fetch('http://127.0.0.1:8000/v1/auth/spotify/status', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (!data.connected) {
+            // Persist pending photo and redirect to connect page
+            sessionStorage.setItem('pending_analyze_photo', photoData);
+            sessionStorage.setItem('return_to', '/home/analyze');
+            sessionStorage.setItem('connect_reason', 'analyze');
+            // Stop analyzing state and go to connect route
+            setIsAnalyzing(false);
+            setMode(null);
+            navigate('/home/spotify-connect');
+            return;
+          }
+        }
+      } catch (_) {}
+
       console.log('Enviando imagen al backend para análisis...');
       
       const result = await analyzeEmotionBase64(photoData);
@@ -78,6 +115,8 @@ const EmotionAnalyzer = () => {
 
   const handleCameraCapture = (photoData) => {
     console.log('📸 Foto capturada desde cámara');
+    // Stop camera view by leaving mode; analysis flow will redirect if needed
+    setMode(null);
     handleAnalyzeImage(photoData);
   };
 

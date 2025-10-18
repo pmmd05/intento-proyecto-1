@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GlassCard from '../layout/GlassCard';
 import './PhotoUpload.css';
 
 const PhotoUpload = ({ onUpload, onCancel }) => {
+  const navigate = useNavigate();
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -82,8 +84,30 @@ const PhotoUpload = ({ onUpload, onCancel }) => {
     }
   };
 
-  const confirmUpload = () => {
-    if (previewUrl) {
+  const confirmUpload = async () => {
+    if (!previewUrl) return;
+    try {
+      // Check Spotify connection status
+      const res = await fetch('http://127.0.0.1:8000/v1/auth/spotify/status', { credentials: 'include' });
+      let connected = false;
+      if (res.ok) {
+        const data = await res.json();
+        connected = !!data.connected;
+      }
+      if (!connected) {
+        // Persist pending analyze data and send user to connect prompt
+        try {
+          sessionStorage.setItem('pending_analyze_photo', previewUrl);
+          sessionStorage.setItem('return_to', '/home/analyze');
+          sessionStorage.setItem('connect_reason', 'analyze');
+        } catch (_) {}
+        navigate('/home/spotify-connect');
+        return;
+      }
+      // If connected, proceed with upload/analyze
+      onUpload(previewUrl);
+    } catch (e) {
+      // Fail safe: continue upload
       onUpload(previewUrl);
     }
   };

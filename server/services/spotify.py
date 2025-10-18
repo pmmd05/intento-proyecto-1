@@ -4,6 +4,7 @@ import secrets
 from typing import Dict, Optional
 from server.core.config import settings
 import random
+import base64
 
 
 CLIENT_ID = settings.SPOTIFY_CLIENT_ID
@@ -41,16 +42,23 @@ def get_spotify_token(code: str) -> Dict:
         "grant_type": "authorization_code",
         "code": code,
         "redirect_uri": REDIRECT_URI,
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET
     }
+    # Spotify requires HTTP Basic auth header with client_id:client_secret
+    basic_token = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
     headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": f"Basic {basic_token}",
     }
 
     try:
         response = requests.post(SPOTIFY_TOKEN_URL, data=payload, headers=headers, timeout=30)
-        response.raise_for_status()
+        if response.status_code != 200:
+            # Surface body for diagnostics during development
+            try:
+                body = response.json()
+            except Exception:
+                body = response.text
+            raise Exception(f"Spotify token error {response.status_code}: {body}")
         
     except requests.exceptions.Timeout:
         raise Exception("Timeout al conectar con Spotify")

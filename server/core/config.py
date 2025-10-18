@@ -19,7 +19,8 @@ class Settings(BaseSettings):
 
     SPOTIFY_CLIENT_ID: str
     SPOTIFY_CLIENT_SECRET: str
-    SPOTIFY_REDIRECT_URI: str = "http://127.0.0.1:8000/v1/auth/callback"
+    # Callback path should match the route defined in the auth router
+    SPOTIFY_REDIRECT_URI: str = "http://127.0.0.1:8000/v1/auth/spotify/callback"
     
 settings = Settings()
 

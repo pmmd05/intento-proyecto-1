@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { getCurrentUserApi } from '../utils/api';
+import { getCurrentUserApi, clearCurrentUserCache } from '../utils/api';
 
 // Crear contexto de autenticación
 const AuthContext = createContext();
@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
   // Función para hacer login
   const login = (userData, token) => {
     localStorage.setItem('access_token', token);
+    clearCurrentUserCache();
     setUser(userData);
     setIsAuthenticated(true);
   };
@@ -52,6 +53,7 @@ export const AuthProvider = ({ children }) => {
   // Función para hacer logout
   const logout = () => {
     localStorage.removeItem('access_token');
+    clearCurrentUserCache();
     setUser(null);
     setIsAuthenticated(false);
   };

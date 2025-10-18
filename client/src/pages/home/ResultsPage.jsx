@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/sidebar/Sidebar';
 import GlassCard from '../../components/layout/GlassCard';
@@ -12,21 +12,17 @@ const ResultsPage = () => {
   
   const { result, photo } = location.state || {};
 
-  useEffect(() => {
-    if (!result || !photo) {
-      navigate('/home/analyze');
-      return;
-    }
-
-    fetchRecommendations();
-  }, [result]);
-
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
     setLoading(true);
     try {
-      const url = `http://127.0.0.1:8000/recommend/mockup?emotion=${result.emotion}`;
-      
-      const response = await fetch(url);
+      const protectedUrl = `http://127.0.0.1:8000/recommend?emotion=${result.emotion}`;
+      let response = await fetch(protectedUrl, { credentials: 'include' });
+
+      if (!response.ok) {
+        // Fallback to mockup if protected endpoint fails
+        const fallbackUrl = `http://127.0.0.1:8000/recommend/mockup?emotion=${result.emotion}`;
+        response = await fetch(fallbackUrl);
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -40,7 +36,15 @@ const ResultsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [result?.emotion]);
+
+  useEffect(() => {
+    if (!result || !photo) {
+      navigate('/home/analyze');
+      return;
+    }
+    fetchRecommendations();
+  }, [result, photo, navigate, fetchRecommendations]);
 
   // 🎨 Obtener color según emoción
   const getEmotionColor = (emotion) => {

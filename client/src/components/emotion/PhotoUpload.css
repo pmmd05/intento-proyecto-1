@@ -285,6 +285,19 @@
   color: #fff;
 }
 
+/* Make 'Continuar' brighter: stronger gradient and glow */
+.upload-button.primary.glass-lilac {
+  background: linear-gradient(135deg, #a1a2e6 0%, #8B8CF5 100%);
+  box-shadow: 0 10px 28px rgba(139, 140, 245, 0.45), 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(139, 140, 245, 0.5);
+}
+
+.upload-button.primary.glass-lilac:hover {
+  filter: brightness(1.08);
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(139, 140, 245, 0.55), 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
 .upload-button.secondary {
   color: var(--black);
   border: 1px solid rgba(0, 0, 0, 0.2);

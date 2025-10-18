@@ -51,13 +51,23 @@ export const handleApiError = (error) => {
 };
 
 export const getBaseUrl = () => {
+  // Priority 1: explicit env var
   let base = process.env.REACT_APP_API_URL || '';
   try {
-    if (!base && typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
-      base = 'http://127.0.0.1:8000';
+    if (!base && typeof window !== 'undefined') {
+      const host = window.location.hostname || '';
+      const isDev = process.env.NODE_ENV !== 'production';
+      // If running the React dev server (localhost or 127.*), default to FastAPI on 127.0.0.1:8000
+      if (isDev && (host === 'localhost' || host === '127.0.0.1')) {
+        base = 'http://127.0.0.1:8000';
+      }
     }
   } catch (e) {
     console.error('Error getting base URL:', e);
+  }
+  // Final fallback in dev to avoid empty base causing relative calls to port 3000
+  if (!base) {
+    base = 'http://127.0.0.1:8000';
   }
   return base;
 };
@@ -112,28 +122,57 @@ export const registerApi = async (formData) => {
  * Obtener información del usuario autenticado actual
  * @returns {Promise} Datos del usuario (id, nombre, email)
  */
+// In-flight request and cache for current user to avoid duplicate calls
+let __currentUserInFlight = null;
+let __currentUserCache = null;
+let __currentUserCacheTs = 0;
+const __USER_TTL_MS = 5000; // 5s cache window
+
+export const clearCurrentUserCache = () => {
+  __currentUserInFlight = null;
+  __currentUserCache = null;
+  __currentUserCacheTs = 0;
+};
+
 export const getCurrentUserApi = async () => {
   try {
     const url = `${getBaseUrl()}/v1/auth/me`;
-    const response = await fetchWithTimeout(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders()
-      }
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem('access_token');
-        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-      }
-      
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+    // Serve from cache if fresh
+    if (__currentUserCache && (Date.now() - __currentUserCacheTs) < __USER_TTL_MS) {
+      return __currentUserCache;
+    }
+    // Share in-flight request to dedupe concurrent calls
+    if (__currentUserInFlight) {
+      return await __currentUserInFlight;
     }
 
-    return response.json();
+    __currentUserInFlight = (async () => {
+      const response = await fetchWithTimeout(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('access_token');
+          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      __currentUserCache = data;
+      __currentUserCacheTs = Date.now();
+      return data;
+    })();
+
+    const result = await __currentUserInFlight;
+    __currentUserInFlight = null;
+    return result;
   } catch (error) {
     if (error.message.includes('Sesión expirada')) {
       throw error;
@@ -141,6 +180,7 @@ export const getCurrentUserApi = async () => {
     if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
       throw new Error('No se puede conectar con el servidor.');
     }
+    __currentUserInFlight = null;
     throw error;
   }
 };
