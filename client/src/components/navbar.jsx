@@ -4,6 +4,7 @@ import Button from './Button';
 import { LOGO_SRC } from '../constants/assets';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useFlash } from './flash/FlashContext'; // 👈 Importar useFlash
+import { TokenStorage } from '../utils/storage';
 
 function Navbar() {
   const [open, setOpen] = useState(false);
@@ -13,36 +14,33 @@ function Navbar() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const flash = useFlash(); // 👈 Inicializar flash
+  const flash = useFlash(); //Inicializar flash
 
   // Verificar autenticación basada en el token
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    setIsAuthenticated(!!token);
-    
-    // Escuchar cambios en el localStorage (por si se cierra sesión en otra pestaña)
-    const handleStorageChange = () => {
-      const newToken = localStorage.getItem('access_token');
-      setIsAuthenticated(!!newToken);
-    };
+useEffect(() => {
+  const token = TokenStorage.getToken();
+  setIsAuthenticated(!!token && !TokenStorage.isTokenExpired());
+  
+  // Verificar periódicamente
+  const interval = setInterval(() => {
+    const currentToken = TokenStorage.getToken();
+    setIsAuthenticated(!!currentToken && !TokenStorage.isTokenExpired());
+  }, 30000); // Cada 30 segundos
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  return () => clearInterval(interval);
+}, []);
 
-  const isAuthenticatedArea = location && location.pathname && location.pathname.startsWith('/home');
 
-  const handleLogoff = () => {
-    // remove token and redirect to signin
-    localStorage.removeItem('access_token');
-    setIsAuthenticated(false);
-    navigate('/', { 
-      state: { 
-        flash: 'Sesión cerrada correctamente.',
-        flashType: 'success'
-      } 
-    });
-  };
+const handleLogoff = () => {
+  TokenStorage.removeToken();
+  setIsAuthenticated(false);
+  navigate('/', { 
+    state: { 
+      flash: 'Sesión cerrada correctamente.',
+      flashType: 'success'
+    } 
+  });
+};
 
   // Función para manejar el clic en "Inicio"
   const handleHomeClick = (e) => {

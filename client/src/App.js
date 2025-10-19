@@ -18,9 +18,20 @@ import HistoryPage from './pages/home/HistoryPage';
 import DashboardPage from './pages/home/DashboardPage';
 import RecommendationsPage from './pages/home/RecommendationsPage';
 import SpotifyConnect from './pages/home/SpotifyConnect';
+import { useEffect } from 'react';
 
 
 function App() {
+
+  useEffect(() => {
+    // Migrar token de localStorage a sessionStorage (solo una vez)
+    const oldToken = localStorage.getItem('access_token');
+    if (oldToken && !sessionStorage.getItem('access_token')) {
+      sessionStorage.setItem('access_token', oldToken);
+    }
+    // Limpiar localStorage
+    localStorage.removeItem('access_token');
+  }, []);
 
   return (
     <FlashProvider>
