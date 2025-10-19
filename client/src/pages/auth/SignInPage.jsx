@@ -7,7 +7,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useFlash } from '../../components/flash/FlashContext';
 import { useApi } from '../../hooks/useApi';
 import { loginApi } from '../../utils/api';
-import { TokenStorage } from '../../utils/storage';
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -41,7 +40,10 @@ const SignInPage = () => {
 
   const handleSignIn = async (formData) => {
     try {
-      const data = await callApi(() => loginApi(formData))
+      const data = await callApi(() => loginApi(formData));
+      
+      // 🆕 Guardar el token de acceso
+      localStorage.setItem('access_token', data.access_token);
 
       if (flash?.show) {
         flash.show(`¡Bienvenido de vuelta!`, 'success', 3000);

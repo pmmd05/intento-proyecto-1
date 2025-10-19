@@ -9,7 +9,6 @@ import { useFlash } from '../../components/flash/FlashContext';
 import { updateUserProfileApi, changePasswordApi } from '../../utils/api';
 import './Account.css';
 import { useTheme } from '../../hooks/useTheme';
-import { TokenStorage } from '../../utils/storage';
 
 export default function Account() {
   const location = useLocation();
@@ -207,9 +206,8 @@ export default function Account() {
     }
   };
 
-
   const handleLogout = () => {
-    TokenStorage.removeToken();
+    localStorage.removeItem('access_token');
     navigate('/signin', {
       state: {
         flash: 'Sesión cerrada correctamente',

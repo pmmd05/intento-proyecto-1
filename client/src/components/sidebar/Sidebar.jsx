@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCurrentUser } from '../../hooks/useAuth';
 import './Sidebar.css';
-import { TokenStorage } from '../../utils/storage';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +17,9 @@ const Sidebar = () => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const handleLogout = () => {
-    TokenStorage.removeToken();
+    // Limpiar localStorage y redirigir al login
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_name'); // Por si acaso también existe esto
     navigate('/signin');
   };
 

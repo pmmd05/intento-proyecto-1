@@ -1,6 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { getCurrentUserApi, clearCurrentUserCache } from '../utils/api';
-import { TokenStorage } from '../utils/storage';
 
 // Crear contexto de autenticación
 const AuthContext = createContext();
@@ -23,8 +22,8 @@ export const AuthProvider = ({ children }) => {
   // Función para cargar el usuario actual
   const loadUser = async () => {
     try {
-      const token = TokenStorage.getToken();
-      if (!token || TokenStorage.isTokenExpired()) {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
         setLoading(false);
         return;
       }
@@ -34,7 +33,8 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error cargando usuario:', error);
-      TokenStorage.removeToken();
+      // Si hay error, limpiar token y estado
+      localStorage.removeItem('access_token');
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   // Función para hacer logout
   const logout = () => {
-    TokenStorage.removeToken();
+    localStorage.removeItem('access_token');
     clearCurrentUserCache();
     setUser(null);
     setIsAuthenticated(false);

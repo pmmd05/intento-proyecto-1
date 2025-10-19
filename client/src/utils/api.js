@@ -1,5 +1,3 @@
-import { TokenStorage } from './storage';
-
 // utils/fetchWithTimeout.js
 export const fetchWithTimeout = async (url, options = {}, timeout = 8000) => {
   const controller = new AbortController();
@@ -88,11 +86,7 @@ export const loginApi = async (formData) => {
       throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
-    TokenStorage.setToken(data.access_token);
-    
-    return data;
+    return response.json();
   } catch (error) {
     if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
       throw new Error('No se puede conectar con el servidor.');
@@ -197,21 +191,15 @@ export const getCurrentUserApi = async () => {
 
 // Obtener token JWT del localStorage
 const getAuthToken = () => {
-  return TokenStorage.getToken();
+  return localStorage.getItem('access_token');
 };
 
+// Crear headers con autenticación
 const getAuthHeaders = () => {
   const token = getAuthToken();
   if (!token) {
     throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
   }
-  
-  // Verificar si el token ha expirado
-  if (TokenStorage.isTokenExpired()) {
-    TokenStorage.removeToken();
-    throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-  }
-  
   return {
     'Authorization': `Bearer ${token}`
   };
