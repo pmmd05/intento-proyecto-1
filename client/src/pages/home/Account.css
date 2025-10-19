@@ -677,6 +677,10 @@ body.dark-mode .account-page {
   color: var(--text-primary);
 }
 
+body.dark-mode .info-form {
+  color: var(--text-primary);
+}
+
 body.dark-mode .glass-card,
 body.dark-mode .profile-card,
 body.dark-mode .info-card,
@@ -735,4 +739,52 @@ body.dark-mode .action-item:hover {
 
 body.dark-mode .action-item.danger:hover {
   background: rgba(201, 118, 118, 0.2);
+}
+
+/* Modo oscuro - Textos de configuración */
+body.dark-mode .setting-desc {
+  color: #cbd5e1;
+}
+
+body.dark-mode .profile-email {
+  color: #cbd5e1;
+}
+
+body.dark-mode .account-title {
+  color: #ffffff;
+  background: linear-gradient(135deg, 
+    rgba(195, 196, 250, 0.9) 0%, 
+    rgba(255, 208, 231, 0.9) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: brightness(1.4);
+}
+
+body.dark-mode .account-subtitle {
+  color: #e2e8f0;
+}
+
+body.dark-mode .card-title {
+  color: #ffffff;
+}
+
+body.dark-mode .profile-name {
+  color: #ffffff;
+}
+
+body.dark-mode .profile-email {
+  color: #cbd5e1;
+}
+
+body.dark-mode .setting-desc {
+  color: #cbd5e1;
+}
+
+body.dark-mode .form-label {
+  color: #f7fafc;
+}
+
+body.dark-mode .stat-label {
+  color: #cbd5e1;
 }
