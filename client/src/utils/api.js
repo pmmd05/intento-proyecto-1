@@ -185,10 +185,6 @@ export const getCurrentUserApi = async () => {
   }
 };
 
-// ========================================
-// 🆕 NUEVAS FUNCIONES PARA ANÁLISIS DE IMAGEN
-// ========================================
-
 // Obtener token JWT del localStorage
 const getAuthToken = () => {
   return localStorage.getItem('access_token');
@@ -267,6 +263,89 @@ export const analyzeEmotionFile = async (imageFile) => {
 
     if (!response.ok) {
       if (response.status === 401) {
+        localStorage.removeItem('access_token');
+        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      }
+      
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    if (error.message.includes('Sesión expirada')) {
+      throw error;
+    }
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+      throw new Error('No se puede conectar con el servidor.');
+    }
+    throw error;
+  }
+};
+
+/**
+ * Actualizar perfil de usuario
+ * @param {Object} userData - Datos a actualizar (nombre, email)
+ * @returns {Promise} Usuario actualizado
+ */
+export const updateUserProfileApi = async (userData) => {
+  try {
+    const url = `${getBaseUrl()}/v1/user/profile`;
+    const response = await fetchWithTimeout(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(userData)
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('access_token');
+        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      }
+      
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    if (error.message.includes('Sesión expirada')) {
+      throw error;
+    }
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+      throw new Error('No se puede conectar con el servidor.');
+    }
+    throw error;
+  }
+};
+
+/**
+ * Cambiar contraseña del usuario
+ * @param {Object} passwordData - current_password y new_password
+ * @returns {Promise} Resultado del cambio
+ */
+export const changePasswordApi = async (passwordData) => {
+  try {
+    const url = `${getBaseUrl()}/v1/user/change-password`;
+    const response = await fetchWithTimeout(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(passwordData)
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        const errorData = await response.json().catch(() => ({}));
+        // Diferenciar entre token inválido y contraseña incorrecta
+        if (errorData.detail?.includes('incorrecta')) {
+          throw new Error(errorData.detail);
+        }
         localStorage.removeItem('access_token');
         throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       }
