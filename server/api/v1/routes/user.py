@@ -13,7 +13,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return get_user_by_id(db, user_id)
 
 
-# Actualizar perfil
+# 🆕 NUEVO - Actualizar perfil
 @router.patch("/profile", response_model=UserResponse)
 def update_profile(
     user_data: UserUpdate,
@@ -49,7 +49,7 @@ def update_profile(
         )
 
 
-# Cambiar contraseña
+# 🆕 NUEVO - Cambiar contraseña
 @router.post("/change-password")
 def update_password(
     password_data: ChangePassword,

@@ -32,8 +32,6 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
@@ -51,9 +49,7 @@ dist/
 build/
 *.pyc
 *.pyo
-env/
-venv/
-ENV/
+.Python
 .venv
 
 # PyCharm
