@@ -24,75 +24,37 @@ const EmotionAnalyzer = () => {
   // Mostrar el nombre del usuario o un placeholder mientras carga
   const displayName = user?.nombre || 'Usuario';
 
-  // Resume flow after Spotify connect if a pending photo exists
-  const resumedRef = useRef(false);
-  useEffect(() => {
-    if (resumedRef.current) return;
-    try {
-      const reason = sessionStorage.getItem('connect_reason');
-      const pending = sessionStorage.getItem('pending_analyze_photo');
-      if (reason === 'analyze' && pending) {
-        resumedRef.current = true;
-        // Clear markers before proceeding to avoid repeats
-        sessionStorage.removeItem('connect_reason');
-        sessionStorage.removeItem('return_to');
-        sessionStorage.removeItem('pending_analyze_photo');
-        handleAnalyzeImage(pending);
-      }
-    } catch (_) {}
-  }, []);
 
   const handleAnalyzeImage = async (photoData) => {
     setIsAnalyzing(true);
-    
-    try {
-      // Ensure Spotify is connected before analyzing
-      try {
-        const res = await fetch('http://127.0.0.1:8000/v1/auth/spotify/status', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          if (!data.connected) {
-            // Persist pending photo and redirect to connect page
-            sessionStorage.setItem('pending_analyze_photo', photoData);
-            sessionStorage.setItem('return_to', '/home/analyze');
-            sessionStorage.setItem('connect_reason', 'analyze');
-            // Stop analyzing state and go to connect route
-            setIsAnalyzing(false);
-            setMode(null);
-            navigate('/home/spotify-connect');
-            return;
-          }
-        }
-      } catch (_) {}
 
+    try {
       console.log('Enviando imagen al backend para análisis...');
-      
+
       const result = await analyzeEmotionBase64(photoData);
-      
+
       console.log('✅ Resultado del análisis:', result);
       if (result && result.emotions_detected) {
         console.log('🎯 Porcentajes de emociones:', result.emotions_detected);
       }
       setAnalysisResult(result);
       setAnalyzedPhoto(photoData);
-      
-      if (flash?.show) {  
+
+      if (flash?.show) {
         flash.show('¡Análisis completado con éxito!', 'success', 3000);
       }
-      
-      // ⭐ NUEVA LÍNEA: Navegar a página de resultados
-      navigate('/home/results', { 
-        state: { 
-          result: result, 
-          photo: photoData 
-        } 
+
+      // Navegar a página de resultados
+      navigate('/home/results', {
+        state: {
+          result: result,
+          photo: photoData
+        }
       });
-      // TODO: Navegar a página de resultados
-      // navigate('/home/results', { state: { result, photo: photoData } });
-      
+
     } catch (error) {
       console.error('❌ Error al analizar imagen:', error);
-      
+
       if (error.message.includes('Sesión expirada')) {
         if (flash?.show) {
           flash.show('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 'error', 4000);
@@ -102,7 +64,7 @@ const EmotionAnalyzer = () => {
         }, 2000);
         return;
       }
-      
+
       if (flash?.show) {
         flash.show(
           error.message || 'Error al analizar la imagen. Por favor, intenta de nuevo.',
