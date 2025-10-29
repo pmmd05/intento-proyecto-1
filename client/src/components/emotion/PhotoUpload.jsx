@@ -84,32 +84,10 @@ const PhotoUpload = ({ onUpload, onCancel }) => {
     }
   };
 
-  const confirmUpload = async () => {
+  const confirmUpload = () => {
     if (!previewUrl) return;
-    try {
-      // Check Spotify connection status
-      const res = await fetch('http://127.0.0.1:8000/v1/auth/spotify/status', { credentials: 'include' });
-      let connected = false;
-      if (res.ok) {
-        const data = await res.json();
-        connected = !!data.connected;
-      }
-      if (!connected) {
-        // Persist pending analyze data and send user to connect prompt
-        try {
-          sessionStorage.setItem('pending_analyze_photo', previewUrl);
-          sessionStorage.setItem('return_to', '/home/analyze');
-          sessionStorage.setItem('connect_reason', 'analyze');
-        } catch (_) {}
-        navigate('/home/spotify-connect');
-        return;
-      }
-      // If connected, proceed with upload/analyze
-      onUpload(previewUrl);
-    } catch (e) {
-      // Fail safe: continue upload
-      onUpload(previewUrl);
-    }
+    // Proceed directly with upload/analyze - no Spotify check needed
+    onUpload(previewUrl);
   };
 
   return (

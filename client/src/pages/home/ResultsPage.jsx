@@ -2,14 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/sidebar/Sidebar';
 import GlassCard from '../../components/layout/GlassCard';
+import { useFlash } from '../../components/flash/FlashContext';
 import './ResultsPage.css';
 
 const ResultsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const flash = useFlash();
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
-  
+  const [spotifyConnected, setSpotifyConnected] = useState(false);
+  const [savingPlaylist, setSavingPlaylist] = useState(false);
+
   const { result, photo } = location.state || {};
 
   const fetchRecommendations = useCallback(async () => {
@@ -38,13 +42,113 @@ const ResultsPage = () => {
     }
   }, [result?.emotion]);
 
+  // Verificar conexión de Spotify
+  const checkSpotifyConnection = useCallback(async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/v1/auth/spotify/status', {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSpotifyConnected(data.connected || false);
+      }
+    } catch (error) {
+      console.error('Error verificando conexión de Spotify:', error);
+      setSpotifyConnected(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!result || !photo) {
       navigate('/home/analyze');
       return;
     }
     fetchRecommendations();
-  }, [result, photo, navigate, fetchRecommendations]);
+    checkSpotifyConnection();
+  }, [result, photo, navigate, fetchRecommendations, checkSpotifyConnection]);
+
+  // Función para guardar playlist en Spotify
+  const handleSavePlaylist = async () => {
+    // Verificar conexión de Spotify
+    if (!spotifyConnected) {
+      sessionStorage.setItem('return_to', '/home/results');
+      sessionStorage.setItem('connect_reason', 'save_playlist');
+      sessionStorage.setItem('playlist_data', JSON.stringify({
+        emotion: result.emotion,
+        recommendations: recommendations
+      }));
+
+      if (flash?.show) {
+        flash.show('Conecta tu cuenta de Spotify para guardar la playlist', 'info', 3000);
+      }
+
+      navigate('/home/spotify-connect');
+      return;
+    }
+
+    // Si está conectado, crear la playlist
+    setSavingPlaylist(true);
+
+    try {
+      const trackUris = recommendations
+        .filter(track => track.uri)
+        .map(track => track.uri);
+
+      if (trackUris.length === 0) {
+        if (flash?.show) {
+          flash.show('No hay canciones disponibles para guardar', 'error', 3000);
+        }
+        return;
+      }
+
+      const response = await fetch('http://127.0.0.1:8000/recommend/create-playlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          emotion: result.emotion,
+          track_uris: trackUris
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        if (flash?.show) {
+          flash.show(`¡Playlist "${data.playlist_name}" creada exitosamente!`, 'success', 4000);
+        }
+
+        // Abrir playlist en Spotify
+        if (data.playlist_url) {
+          window.open(data.playlist_url, '_blank');
+        }
+      } else {
+        // Si el token expiró, redirigir a reconectar
+        if (response.status === 401) {
+          setSpotifyConnected(false);
+          if (flash?.show) {
+            flash.show('Tu sesión de Spotify expiró. Por favor, vuelve a conectarte', 'error', 4000);
+          }
+          sessionStorage.setItem('return_to', '/home/results');
+          sessionStorage.setItem('connect_reason', 'save_playlist');
+          navigate('/home/spotify-connect');
+        } else {
+          if (flash?.show) {
+            flash.show(data.message || 'Error al crear la playlist', 'error', 3000);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error guardando playlist:', error);
+      if (flash?.show) {
+        flash.show('Error al guardar la playlist. Por favor, intenta de nuevo', 'error', 3000);
+      }
+    } finally {
+      setSavingPlaylist(false);
+    }
+  };
 
   // 🎨 Obtener color según emoción
   const getEmotionColor = (emotion) => {
@@ -125,27 +229,56 @@ const ResultsPage = () => {
       <Sidebar />
       
       <div className="results-content">
-        {/* Header con botón de Nuevo Análisis */}
+        {/* Header con botones de acciones */}
         <div className="results-header-section">
           <div className="results-header">
             <h1 className="results-title">Resultados del Análisis</h1>
             <p className="results-subtitle">Tu emoción dominante y música personalizada</p>
           </div>
-          
-          <button 
-            className="action-button new-analysis"
-            onClick={() => navigate('/home/analyze')}
-            style={{
-              background: emotionColors.gradient,
-              borderColor: emotionColors.glassBorder
-            }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="1 4 1 10 7 10"></polyline>
-              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-            </svg>
-            Nuevo Análisis
-          </button>
+
+          <div className="action-buttons-group">
+            <button
+              className="action-button save-playlist"
+              onClick={handleSavePlaylist}
+              disabled={savingPlaylist || recommendations.length === 0}
+              style={{
+                background: spotifyConnected
+                  ? emotionColors.gradient
+                  : 'rgba(255, 255, 255, 0.1)',
+                borderColor: emotionColors.glassBorder,
+                opacity: savingPlaylist ? 0.6 : 1
+              }}
+            >
+              {savingPlaylist ? (
+                <>
+                  <div className="button-spinner"></div>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  {spotifyConnected ? 'Guardar Playlist' : 'Conectar Spotify'}
+                </>
+              )}
+            </button>
+
+            <button
+              className="action-button new-analysis"
+              onClick={() => navigate('/home/analyze')}
+              style={{
+                background: emotionColors.gradient,
+                borderColor: emotionColors.glassBorder
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              Nuevo Análisis
+            </button>
+          </div>
         </div>
 
         <div className="results-grid">
