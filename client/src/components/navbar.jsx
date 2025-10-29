@@ -17,12 +17,12 @@ function Navbar() {
 
   // Verificar autenticación basada en el token
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     setIsAuthenticated(!!token);
-    
-    // Escuchar cambios en el localStorage (por si se cierra sesión en otra pestaña)
+
+    // Escuchar cambios en el sessionStorage (por si se cierra sesión en otra pestaña)
     const handleStorageChange = () => {
-      const newToken = localStorage.getItem('access_token');
+      const newToken = sessionStorage.getItem('access_token');
       setIsAuthenticated(!!newToken);
     };
 
@@ -34,13 +34,13 @@ function Navbar() {
 
   const handleLogoff = () => {
     // remove token and redirect to signin
-    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token');
     setIsAuthenticated(false);
-    navigate('/', { 
-      state: { 
+    navigate('/', {
+      state: {
         flash: 'Sesión cerrada correctamente.',
         flashType: 'success'
-      } 
+      }
     });
   };
 

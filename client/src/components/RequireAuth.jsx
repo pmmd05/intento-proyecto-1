@@ -2,11 +2,11 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 /**
- * Simple route guard that checks for an `access_token` in localStorage.
+ * Simple route guard that checks for an `access_token` in sessionStorage.
  * If not present, redirect to /signin; otherwise render the children.
  */
 export default function RequireAuth({ children }) {
-  const token = localStorage.getItem('access_token');
+  const token = sessionStorage.getItem('access_token');
   const location = useLocation();
 
   console.log('RequireAuth - Token found:', token); // Para debugging

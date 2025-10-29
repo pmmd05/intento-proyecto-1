@@ -207,7 +207,7 @@ export default function Account() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token');
     navigate('/signin', {
       state: {
         flash: 'Sesión cerrada correctamente',

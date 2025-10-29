@@ -17,9 +17,9 @@ const Sidebar = () => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const handleLogout = () => {
-    // Limpiar localStorage y redirigir al login
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_name'); // Por si acaso también existe esto
+    // Limpiar sessionStorage y redirigir al login
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('user_name'); // Por si acaso también existe esto
     navigate('/signin');
   };
 
