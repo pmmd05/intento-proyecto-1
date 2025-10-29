@@ -150,8 +150,8 @@ async def analyze_emotion_base64(
                 detail="Formato de imagen inválido. Use JPEG, PNG o WebP."
             )
 
-        # If AWS credentials are configured, try to use Rekognition. Otherwise fallback to mockup.
-        use_aws = bool(getattr(settings, 'AWS_ACCESS_KEY_ID', None) and getattr(settings, 'AWS_SECRET_ACCESS_KEY', None))
+        # If AWS Rekognition service is available, try to use it. Otherwise fallback to mockup.
+        use_aws = rekognition_service.is_available
 
         # Mapping from AWS Rekognition emotion types to our app emotion keys
         aws_to_app = {
