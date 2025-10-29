@@ -24,7 +24,6 @@ async def detect_faces(file: UploadFile = File(...)):
         
         image_bytes = await file.read()
         
-        # ✅ CORREGIDO: Agregar AWAIT aquí
         result = await rekognition_service.detect_faces(image_bytes)
         
         if not result["success"]:
@@ -70,7 +69,7 @@ async def detect_text(file: UploadFile = File(...)):
         
         image_bytes = await file.read()
         
-        # ✅ CORREGIDO: Agregar AWAIT aquí
+    
         result = await rekognition_service.detect_text(image_bytes)
         
         if not result["success"]:
@@ -120,7 +119,7 @@ async def detect_moderation(file: UploadFile = File(...)):
         
         image_bytes = await file.read()
         
-        # ✅ CORREGIDO: Agregar AWAIT aquí
+       
         result = await rekognition_service.detect_moderation_labels(image_bytes)
         
         if not result["success"]:
@@ -131,4 +130,3 @@ async def detect_moderation(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error in detect_moderation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    

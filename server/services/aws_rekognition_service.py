@@ -9,17 +9,12 @@ logger = logging.getLogger(__name__)
 class AWSRekognitionService:
     def __init__(self):
         try:
-            client_kwargs = {
-                'region_name': settings.AWS_REGION
-            }
-            # Only pass credentials if explicitly provided in settings
-            if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
-                client_kwargs.update({
-                    'aws_access_key_id': settings.AWS_ACCESS_KEY_ID,
-                    'aws_secret_access_key': settings.AWS_SECRET_ACCESS_KEY,
-                })
-
-            self.client = boto3.client('rekognition', **client_kwargs)
+            self.client = boto3.client(
+                'rekognition',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_REGION
+            )
             self.default_max_labels = settings.AWS_REKOGNITION_MAX_LABELS
             self.default_min_confidence = settings.AWS_REKOGNITION_MIN_CONFIDENCE
             self.default_similarity_threshold = settings.AWS_REKOGNITION_SIMILARITY_THRESHOLD

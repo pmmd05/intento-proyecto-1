@@ -5,6 +5,9 @@ import random
 import base64
 import io
 from PIL import Image
+from server.services.aws_rekognition_service import rekognition_service
+from server.core.config import settings
+from botocore.exceptions import BotoCoreError, ClientError
 
 router = APIRouter(prefix="/v1/analysis", tags=["analysis"])
 
@@ -105,14 +108,8 @@ async def analyze_emotion_base64(
     request: ImageBase64Request,
     authorization: str = Header(..., alias="Authorization")
 ):
-    """
-    🎭 Análisis de emoción desde imagen Base64 (MOCKUP)
-    
-    Este endpoint simula el análisis de emociones sin usar AWS Rekognition.
-    Perfecto para desarrollo y pruebas.
-    """
     try:
-        # Verificar autenticación
+        # Verifica autenticación
         if not authorization or not authorization.startswith("Bearer "):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -125,26 +122,114 @@ async def analyze_emotion_base64(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No se proporcionó ninguna imagen"
             )
-        
-        # Validar formato de imagen
-        is_valid = validate_image_base64(request.image)
-        if not is_valid:
+
+        # Remover prefijo data:image si existe y decodificar
+        image_data = request.image
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+
+        try:
+            image_bytes = base64.b64decode(image_data)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Formato de imagen inválido (no es Base64)."
+            )
+
+        # Validar que sea una imagen válida
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+            img.verify()
+        except Exception:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Formato de imagen inválido. Use JPEG, PNG o WebP."
             )
-        
-        # 🎲 Seleccionar emoción aleatoria (MOCKUP)
+
+        # If AWS credentials are configured, try to use Rekognition. Otherwise fallback to mockup.
+        use_aws = bool(getattr(settings, 'AWS_ACCESS_KEY_ID', None) and getattr(settings, 'AWS_SECRET_ACCESS_KEY', None))
+
+        # Mapping from AWS Rekognition emotion types to our app emotion keys
+        aws_to_app = {
+            'HAPPY': 'happy',
+            'SAD': 'sad',
+            'ANGRY': 'angry',
+            'CALM': 'relaxed',
+            'SURPRISED': 'energetic',
+            'CONFUSED': 'relaxed',
+            'DISGUSTED': 'angry',
+            'FEAR': 'sad'
+        }
+
+        from datetime import datetime
+
+        if use_aws:
+            try:
+                # Call Rekognition detect_faces
+                result = await rekognition_service.detect_faces(image_bytes)
+
+                if not result.get('success'):
+                    # Fallback to mockup if AWS call failed
+                    raise Exception(result.get('error', 'AWS Rekognition returned an error'))
+
+                faces = result.get('faces', [])
+                if not faces:
+                    # No faces detected -> fallback to mockup
+                    raise Exception('No faces detected')
+
+                # Use first face for emotion analysis
+                emotions_list = faces[0].get('emotions', [])
+
+                # Convert to dictionary and normalize confidences to 0..1
+                emotions_detected = {}
+                for e in emotions_list:
+                    typ = e.get('Type') or e.get('type') or e.get('emotion')
+                    conf = e.get('Confidence') or e.get('confidence') or 0.0
+                    conf = float(conf) / 100.0
+                    key = aws_to_app.get(typ.upper(), typ.lower() if isinstance(typ, str) else str(typ))
+                    if key in emotions_detected:
+                        emotions_detected[key] += conf
+                    else:
+                        emotions_detected[key] = conf
+
+                # Normalize after mapping and summing
+                mapped_total = sum(emotions_detected.values())
+                if mapped_total > 0:
+                    for k in list(emotions_detected.keys()):
+                        emotions_detected[k] = round(emotions_detected[k] / mapped_total, 3)
+
+                # Pick top emotion by normalized value
+                if emotions_detected:
+                    app_top = max(emotions_detected, key=lambda k: emotions_detected[k])
+                    top_conf = emotions_detected[app_top]
+                else:
+                    app_top = None
+                    top_conf = 0.0
+
+                emotion_data = {
+                    'emotion': app_top,
+                    'confidence': round(top_conf, 4),
+                    'emotions_detected': emotions_detected,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'message': 'Análisis completado exitosamente (AWS Rekognition)'
+                }
+
+                print(f"✅ Análisis Rekognition: {app_top} ({emotion_data['confidence']*100:.1f}%)")
+                return EmotionAnalysisResponse(**emotion_data)
+
+            except (BotoCoreError, ClientError) as be:
+                print(f"❌ AWS Rekognition error: {be}")
+                # Fallthrough to mockup
+            except Exception as e:
+                print(f"❌ Rekognition processing error: {e}")
+                # Fallthrough to mockup
+
+        # If we reach here, use mockup behavior (previous implementation)
         emotion_key = random.choice(list(MOCK_EMOTIONS.keys()))
         emotion_data = MOCK_EMOTIONS[emotion_key].copy()
-        
-        # Agregar timestamp
-        from datetime import datetime
         emotion_data["timestamp"] = datetime.utcnow().isoformat()
         emotion_data["message"] = f"Análisis completado exitosamente (modo mockup)"
-        
         print(f"✅ Análisis mockup: {emotion_key} ({emotion_data['confidence']*100:.1f}%)")
-        
         return EmotionAnalysisResponse(**emotion_data)
         
     except HTTPException:

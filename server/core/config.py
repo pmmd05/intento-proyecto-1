@@ -20,9 +20,9 @@ class Settings(BaseSettings):
     # Callback path should match the route defined in the auth router
     SPOTIFY_REDIRECT_URI: str = "http://127.0.0.1:8000/v1/auth/spotify/callback"
     
-    # AWS Rekognition (optional: allow boto3 default credential chain)
-    AWS_ACCESS_KEY_ID: str | None = None
-    AWS_SECRET_ACCESS_KEY: str | None = None
+    # AWS Rekognition
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
     AWS_REGION: str = "us-east-2"
     AWS_REKOGNITION_MAX_LABELS: int = 10
     AWS_REKOGNITION_MIN_CONFIDENCE: float = 75.0
