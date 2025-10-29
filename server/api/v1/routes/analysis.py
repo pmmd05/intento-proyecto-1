@@ -4,7 +4,6 @@ from typing import Dict
 import random
 import base64
 import io
-from decimal import Decimal
 from PIL import Image
 from server.services.aws_rekognition_service import rekognition_service
 from server.core.config import settings
@@ -147,8 +146,8 @@ async def analyze_emotion_base64(
                 detail="Formato de imagen inválido. Use JPEG, PNG o WebP."
             )
 
-        # If AWS Rekognition service is available, try to use it. Otherwise fallback to mockup.
-        use_aws = rekognition_service.is_available
+        # If AWS credentials are configured, try to use Rekognition. Otherwise fallback to mockup.
+        use_aws = bool(getattr(settings, 'AWS_ACCESS_KEY_ID', None) and getattr(settings, 'AWS_SECRET_ACCESS_KEY', None))
 
         # Mapping from AWS Rekognition emotion types to our app emotion keys
         aws_to_app = {

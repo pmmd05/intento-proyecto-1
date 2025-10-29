@@ -8,7 +8,7 @@ const HomeNavbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    sessionStorage.removeItem('access_token');
+    localStorage.removeItem('access_token');
     navigate('/signin', {
       state: {
         flash: 'Sesión cerrada correctamente',

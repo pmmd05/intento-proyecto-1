@@ -2,7 +2,6 @@ import './App.css';
 import {Routes, Route} from 'react-router-dom';
 import { FlashProvider } from './components/flash/FlashContext';
 import FlashBanner from './components/flash/FlashBanner';
-import SessionGuard from './components/SessionGuard';
 import Homepage from './pages/homepage';
 import Account from './pages/home/Account';
 import HomeLayout from './pages/home/HomeLayout';
@@ -26,7 +25,6 @@ function App() {
   return (
     <FlashProvider>
       <div className="App">
-        <SessionGuard />
         <FlashBanner />
         <main>
           <Routes>

@@ -8,41 +8,25 @@ logger = logging.getLogger(__name__)
 
 class AWSRekognitionService:
     def __init__(self):
-        self.client = None
-        self.is_available = False
-
         try:
-            # Solo inicializar si las credenciales están configuradas
-            if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
-                self.client = boto3.client(
-                    'rekognition',
-                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                    region_name=settings.AWS_REGION
-                )
-                self.default_max_labels = settings.AWS_REKOGNITION_MAX_LABELS
-                self.default_min_confidence = settings.AWS_REKOGNITION_MIN_CONFIDENCE
-                self.default_similarity_threshold = settings.AWS_REKOGNITION_SIMILARITY_THRESHOLD
-                self.is_available = True
-                logger.info("AWS Rekognition service initialized successfully")
-            else:
-                logger.warning("AWS Rekognition credentials not configured. Service will run in mockup mode.")
+            self.client = boto3.client(
+                'rekognition',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_REGION
+            )
+            self.default_max_labels = settings.AWS_REKOGNITION_MAX_LABELS
+            self.default_min_confidence = settings.AWS_REKOGNITION_MIN_CONFIDENCE
+            self.default_similarity_threshold = settings.AWS_REKOGNITION_SIMILARITY_THRESHOLD
+            logger.info("AWS Rekognition service initialized successfully")
         except Exception as e:
-            logger.error(f"Failed to initialize AWS Rekognition: {str(e)}. Service will run in mockup mode.")
-            self.is_available = False
+            logger.error(f"Failed to initialize AWS Rekognition: {str(e)}")
+            raise
     
     async def detect_faces(self, image_bytes: bytes) -> Dict[str, Any]:
         """
         Detecta caras en una imagen con todos los atributos
         """
-        if not self.is_available or not self.client:
-            return {
-                "success": False,
-                "error": "AWS Rekognition service is not available",
-                "face_count": 0,
-                "faces": []
-            }
-
         try:
             response = self.client.detect_faces(
                 Image={'Bytes': image_bytes},
@@ -85,21 +69,13 @@ class AWSRekognitionService:
         """
         Detecta etiquetas/objetos en una imagen
         """
-        if not self.is_available or not self.client:
-            return {
-                "success": False,
-                "error": "AWS Rekognition service is not available",
-                "label_count": 0,
-                "labels": []
-            }
-
         try:
             response = self.client.detect_labels(
                 Image={'Bytes': image_bytes},
                 MaxLabels=max_labels or self.default_max_labels,
                 MinConfidence=min_confidence or self.default_min_confidence
             )
-
+            
             labels = []
             for label in response['Labels']:
                 labels.append({
@@ -108,7 +84,7 @@ class AWSRekognitionService:
                     "instances": len(label.get('Instances', [])),
                     "parents": [parent['Name'] for parent in label.get('Parents', [])]
                 })
-
+            
             return {
                 "success": True,
                 "label_count": len(response['Labels']),
@@ -128,19 +104,11 @@ class AWSRekognitionService:
         """
         Detecta texto en una imagen
         """
-        if not self.is_available or not self.client:
-            return {
-                "success": False,
-                "error": "AWS Rekognition service is not available",
-                "text_count": 0,
-                "text_detections": []
-            }
-
         try:
             response = self.client.detect_text(
                 Image={'Bytes': image_bytes}
             )
-
+            
             text_detections = []
             for detection in response['TextDetections']:
                 text_detections.append({
@@ -149,7 +117,7 @@ class AWSRekognitionService:
                     "confidence": detection.get('Confidence', 0),
                     "bounding_box": detection.get('Geometry', {}).get('BoundingBox', {}) if detection.get('Geometry') else {}
                 })
-
+            
             return {
                 "success": True,
                 "text_count": len(response['TextDetections']),
@@ -169,22 +137,13 @@ class AWSRekognitionService:
         """
         Compara caras entre dos imágenes
         """
-        if not self.is_available or not self.client:
-            return {
-                "success": False,
-                "error": "AWS Rekognition service is not available",
-                "match_count": 0,
-                "matches": [],
-                "unmatched_faces": []
-            }
-
         try:
             response = self.client.compare_faces(
                 SourceImage={'Bytes': source_image_bytes},
                 TargetImage={'Bytes': target_image_bytes},
                 SimilarityThreshold=similarity_threshold or self.default_similarity_threshold
             )
-
+            
             matches = []
             for match in response['FaceMatches']:
                 matches.append({
@@ -192,7 +151,7 @@ class AWSRekognitionService:
                     "bounding_box": match['Face'].get('BoundingBox', {}),
                     "confidence": match['Face'].get('Confidence', 0)
                 })
-
+            
             # Caras que no coincidieron
             unmatched_faces = []
             for face in response.get('UnmatchedFaces', []):
@@ -200,7 +159,7 @@ class AWSRekognitionService:
                     "bounding_box": face.get('BoundingBox', {}),
                     "confidence": face.get('Confidence', 0)
                 })
-
+            
             return {
                 "success": True,
                 "match_count": len(response['FaceMatches']),
@@ -223,21 +182,12 @@ class AWSRekognitionService:
         """
         Detecta contenido inapropiado en imágenes
         """
-        if not self.is_available or not self.client:
-            return {
-                "success": False,
-                "error": "AWS Rekognition service is not available",
-                "has_inappropriate_content": False,
-                "moderation_labels": [],
-                "inappropriate_score": 0
-            }
-
         try:
             response = self.client.detect_moderation_labels(
                 Image={'Bytes': image_bytes},
                 MinConfidence=min_confidence or self.default_min_confidence
             )
-
+            
             moderation_labels = []
             for label in response['ModerationLabels']:
                 moderation_labels.append({
@@ -246,7 +196,7 @@ class AWSRekognitionService:
                     "parent_name": label.get('ParentName', ''),
                     "category": label.get('ParentName', '')  # Categoría principal
                 })
-
+            
             return {
                 "success": True,
                 "has_inappropriate_content": len(response['ModerationLabels']) > 0,
