@@ -8,25 +8,41 @@ logger = logging.getLogger(__name__)
 
 class AWSRekognitionService:
     def __init__(self):
+        self.client = None
+        self.is_available = False
+
         try:
-            self.client = boto3.client(
-                'rekognition',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_REGION
-            )
-            self.default_max_labels = settings.AWS_REKOGNITION_MAX_LABELS
-            self.default_min_confidence = settings.AWS_REKOGNITION_MIN_CONFIDENCE
-            self.default_similarity_threshold = settings.AWS_REKOGNITION_SIMILARITY_THRESHOLD
-            logger.info("AWS Rekognition service initialized successfully")
+            # Solo inicializar si las credenciales están configuradas
+            if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+                self.client = boto3.client(
+                    'rekognition',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name=settings.AWS_REGION
+                )
+                self.default_max_labels = settings.AWS_REKOGNITION_MAX_LABELS
+                self.default_min_confidence = settings.AWS_REKOGNITION_MIN_CONFIDENCE
+                self.default_similarity_threshold = settings.AWS_REKOGNITION_SIMILARITY_THRESHOLD
+                self.is_available = True
+                logger.info("AWS Rekognition service initialized successfully")
+            else:
+                logger.warning("AWS Rekognition credentials not configured. Service will run in mockup mode.")
         except Exception as e:
-            logger.error(f"Failed to initialize AWS Rekognition: {str(e)}")
-            raise
+            logger.error(f"Failed to initialize AWS Rekognition: {str(e)}. Service will run in mockup mode.")
+            self.is_available = False
     
     async def detect_faces(self, image_bytes: bytes) -> Dict[str, Any]:
         """
         Detecta caras en una imagen con todos los atributos
         """
+        if not self.is_available or not self.client:
+            return {
+                "success": False,
+                "error": "AWS Rekognition service is not available",
+                "face_count": 0,
+                "faces": []
+            }
+
         try:
             response = self.client.detect_faces(
                 Image={'Bytes': image_bytes},
