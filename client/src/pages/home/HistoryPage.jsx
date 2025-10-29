@@ -10,41 +10,13 @@ const HistoryPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchHistory();
+    // TODO: Obtener historial real del backend
+    // Por ahora usamos datos mockup
+    const mockData = generateMockHistory();
+    setAnalyses(mockData);
+    setFilteredAnalyses(mockData);
+    setLoading(false);
   }, []);
-
-  const fetchHistory = async () => {
-    try {
-      setLoading(true);
-      const token = sessionStorage.getItem('access_token');
-
-      const response = await fetch('http://127.0.0.1:8000/v1/stats/history', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAnalyses(data);
-        setFilteredAnalyses(data);
-      } else {
-        console.error('Error al cargar historial:', response.status);
-        // Fallback a datos mock
-        const mockData = generateMockHistory();
-        setAnalyses(mockData);
-        setFilteredAnalyses(mockData);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      // Fallback a datos mock
-      const mockData = generateMockHistory();
-      setAnalyses(mockData);
-      setFilteredAnalyses(mockData);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (selectedEmotion === 'all') {

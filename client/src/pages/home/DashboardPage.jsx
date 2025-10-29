@@ -8,41 +8,13 @@ const DashboardPage = () => {
   const { user } = useCurrentUser();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchDashboardStats();
+    // TODO: Obtener estadísticas reales del backend
+    const mockStats = generateMockStats();
+    setStats(mockStats);
+    setLoading(false);
   }, []);
-
-  const fetchDashboardStats = async () => {
-    try {
-      setLoading(true);
-      const token = sessionStorage.getItem('access_token');
-
-      const response = await fetch('http://127.0.0.1:8000/v1/stats/dashboard', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      } else {
-        console.error('Error al cargar estadísticas:', response.status);
-        setError('Error al cargar estadísticas');
-        // Fallback a datos mock en caso de error
-        setStats(generateMockStats());
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setError('Error al conectar con el servidor');
-      // Fallback a datos mock en caso de error
-      setStats(generateMockStats());
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const generateMockStats = () => {
     return {

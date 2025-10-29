@@ -1,12 +1,18 @@
 from fastapi import APIRouter, Depends, Query, Header, HTTPException, Request
-from sqlalchemy.orm import Session
 from server.controllers.recommend_controller import recommend_songs_by_emotion
+from server.services.spotify import create_playlist
+from pydantic import BaseModel
 import requests
 import json
 import os
 import random
 
 router = APIRouter(prefix="/recommend", tags=["recommendations"])
+
+
+class CreatePlaylistRequest(BaseModel):
+    emotion: str
+    track_uris: list
 
 @router.get("/")
 def get_recommendations(
@@ -172,3 +178,56 @@ def test_mockup():
             "status": "error",
             "error": str(e)
         }
+
+
+@router.post("/create-playlist")
+def create_spotify_playlist(
+    request: Request,
+    body: CreatePlaylistRequest,
+    authorization: str = Header(None, alias="Authorization")
+):
+    """
+    Crea una playlist en Spotify con las canciones proporcionadas.
+    Requiere que el usuario esté autenticado con Spotify.
+
+    - emotion: Emoción detectada (para el nombre de la playlist)
+    - track_uris: Lista de URIs de Spotify (ej: ["spotify:track:abc123", ...])
+    """
+    token = None
+
+    # Obtener token del header Authorization
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1].strip()
+
+    # Si no hay header, obtener del cookie de Spotify
+    if not token:
+        cookie_token = request.cookies.get('spotify_access_token')
+        if cookie_token:
+            token = cookie_token
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Debes conectar tu cuenta de Spotify para guardar playlists"
+        )
+
+    if not body.track_uris:
+        raise HTTPException(
+            status_code=400,
+            detail="Debes proporcionar al menos una canción para crear la playlist"
+        )
+
+    # Llamar al servicio para crear la playlist
+    result = create_playlist(token, body.emotion, body.track_uris)
+
+    if not result.get("success"):
+        error_message = result.get("message", "Error desconocido")
+
+        # Si el token expiró, devolver error 401
+        if result.get("error") == "token_expired":
+            raise HTTPException(status_code=401, detail=error_message)
+
+        # Para otros errores, devolver 500
+        raise HTTPException(status_code=500, detail=error_message)
+
+    return result
