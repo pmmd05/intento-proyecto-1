@@ -1,12 +1,16 @@
-from fastapi import APIRouter, HTTPException, status, Header, UploadFile, File
+from fastapi import APIRouter, HTTPException, status, Header, UploadFile, File, Depends
 from pydantic import BaseModel
 from typing import Dict
 import random
 import base64
 import io
 from PIL import Image
+from sqlalchemy.orm import Session
 from server.services.aws_rekognition_service import rekognition_service
 from server.core.config import settings
+from server.db.session import get_db
+from server.db.models.analisis import Analisis
+from server.utils.auth import get_current_user_from_token
 from botocore.exceptions import BotoCoreError, ClientError
 
 router = APIRouter(prefix="/v1/analysis", tags=["analysis"])
@@ -103,18 +107,18 @@ def validate_image_base64(image_data: str) -> bool:
         print(f"❌ Error validando imagen: {e}")
         return False
 
-@router.post("/analyze-base64", response_model=EmotionAnalysisResponse, status_code=status.HTTP_200_OK)
+class EmotionAnalysisResponseWithId(EmotionAnalysisResponse):
+    analisis_id: int
+
+@router.post("/analyze-base64", response_model=EmotionAnalysisResponseWithId, status_code=status.HTTP_200_OK)
 async def analyze_emotion_base64(
     request: ImageBase64Request,
-    authorization: str = Header(..., alias="Authorization")
+    authorization: str = Header(..., alias="Authorization"),
+    db: Session = Depends(get_db)
 ):
     try:
-        # Verifica autenticación
-        if not authorization or not authorization.startswith("Bearer "):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token inválido o ausente"
-            )
+        # Obtener usuario autenticado
+        current_user = get_current_user_from_token(db, authorization)
         
         # Validar imagen
         if not request.image:
@@ -215,7 +219,20 @@ async def analyze_emotion_base64(
                 }
 
                 print(f"✅ Análisis Rekognition: {app_top} ({emotion_data['confidence']*100:.1f}%)")
-                return EmotionAnalysisResponse(**emotion_data)
+
+                # Guardar análisis en BD
+                analisis = Analisis(
+                    user_id=current_user.id,
+                    emotion=app_top,
+                    confidence=round(top_conf, 4),
+                    emotions_data=emotions_detected
+                )
+                db.add(analisis)
+                db.commit()
+                db.refresh(analisis)
+
+                emotion_data['analisis_id'] = analisis.id
+                return EmotionAnalysisResponseWithId(**emotion_data)
 
             except (BotoCoreError, ClientError) as be:
                 print(f"❌ AWS Rekognition error: {be}")
@@ -230,7 +247,20 @@ async def analyze_emotion_base64(
         emotion_data["timestamp"] = datetime.utcnow().isoformat()
         emotion_data["message"] = f"Análisis completado exitosamente (modo mockup)"
         print(f"✅ Análisis mockup: {emotion_key} ({emotion_data['confidence']*100:.1f}%)")
-        return EmotionAnalysisResponse(**emotion_data)
+
+        # Guardar análisis en BD
+        analisis = Analisis(
+            user_id=current_user.id,
+            emotion=emotion_data['emotion'],
+            confidence=emotion_data['confidence'],
+            emotions_data=emotion_data['emotions_detected']
+        )
+        db.add(analisis)
+        db.commit()
+        db.refresh(analisis)
+
+        emotion_data['analisis_id'] = analisis.id
+        return EmotionAnalysisResponseWithId(**emotion_data)
         
     except HTTPException:
         raise

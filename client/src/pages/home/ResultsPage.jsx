@@ -101,15 +101,18 @@ const ResultsPage = () => {
         return;
       }
 
+      const token = sessionStorage.getItem('access_token');
       const response = await fetch('http://127.0.0.1:8000/recommend/create-playlist', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({
           emotion: result.emotion,
-          track_uris: trackUris
+          track_uris: trackUris,
+          analisis_id: result.analisis_id
         })
       });
 
