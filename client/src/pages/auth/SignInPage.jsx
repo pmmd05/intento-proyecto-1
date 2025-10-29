@@ -7,12 +7,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useFlash } from '../../components/flash/FlashContext';
 import { useApi } from '../../hooks/useApi';
 import { loginApi } from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 
 const SignInPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const flash = useFlash();
   const { loading, error, callApi } = useApi();
+  const { login } = useAuth();
 
   useEffect(() => {
   // Agregar clase al body para manejar padding de navbar
@@ -40,23 +42,31 @@ const SignInPage = () => {
 
   const handleSignIn = async (formData) => {
     try {
+      // Obtener token del backend
       const data = await callApi(() => loginApi(formData));
-      
-      // 🆕 Guardar el token de acceso
-      localStorage.setItem('access_token', data.access_token);
+
+      // Guardar temporalmente el token para poder obtener los datos del usuario
+      sessionStorage.setItem('access_token', data.access_token);
+
+      // Obtener datos del usuario usando el token
+      const { getCurrentUserApi } = await import('../../utils/api');
+      const userData = await getCurrentUserApi();
+
+      // Actualizar contexto de autenticación con userData y token
+      login(userData, data.access_token);
 
       if (flash?.show) {
-        flash.show(`¡Bienvenido de vuelta!`, 'success', 3000);
+        flash.show(`¡Bienvenido de vuelta, ${userData.nombre}!`, 'success', 3000);
       }
 
       const returnTo = location?.state?.from?.pathname || '/home';
       setTimeout(() => {
         navigate(returnTo);
       }, 1000);
-      
+
     } catch (err) {
       console.error('Sign in error:', err);
-      
+
       let errorMessage = err.message;
       if (err.message.includes('Failed to fetch')) {
         errorMessage = 'No se puede conectar con el servidor. Por favor, intenta más tarde.';

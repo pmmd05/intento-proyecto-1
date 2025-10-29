@@ -19,6 +19,13 @@ export const fetchWithTimeout = async (url, options = {}, timeout = 8000) => {
   }
 };
 
+// Función para manejar sesión expirada globalmente
+const handleSessionExpired = () => {
+  sessionStorage.removeItem('access_token');
+  // Disparar evento personalizado para que la app lo maneje
+  window.dispatchEvent(new CustomEvent('session-expired'));
+};
+
 // utils/api.js
 export const handleApiError = (error) => {
   console.error('API Error:', error);
@@ -157,7 +164,7 @@ export const getCurrentUserApi = async () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem('access_token');
+          handleSessionExpired();
           throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
         }
         const errorData = await response.json().catch(() => ({}));
@@ -189,9 +196,9 @@ export const getCurrentUserApi = async () => {
 // 🆕 NUEVAS FUNCIONES PARA ANÁLISIS DE IMAGEN
 // ========================================
 
-// Obtener token JWT del localStorage
+// Obtener token JWT del sessionStorage
 const getAuthToken = () => {
-  return localStorage.getItem('access_token');
+  return sessionStorage.getItem('access_token');
 };
 
 // Crear headers con autenticación
@@ -225,10 +232,10 @@ export const analyzeEmotionBase64 = async (imageBase64) => {
     if (!response.ok) {
       // Manejar token expirado
       if (response.status === 401) {
-        localStorage.removeItem('access_token');
+        handleSessionExpired();
         throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       }
-      
+
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
     }
@@ -267,10 +274,10 @@ export const analyzeEmotionFile = async (imageFile) => {
 
     if (!response.ok) {
       if (response.status === 401) {
-        localStorage.removeItem('access_token');
+        handleSessionExpired();
         throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       }
-      
+
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
     }
@@ -306,7 +313,7 @@ export const updateUserProfileApi = async (userData) => {
 
     if (!response.ok) {
       if (response.status === 401) {
-        localStorage.removeItem('access_token');
+        handleSessionExpired();
         throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       }
       
@@ -350,7 +357,7 @@ export const changePasswordApi = async (passwordData) => {
         if (errorData.detail?.includes('incorrecta')) {
           throw new Error(errorData.detail);
         }
-        localStorage.removeItem('access_token');
+        handleSessionExpired();
         throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       }
       

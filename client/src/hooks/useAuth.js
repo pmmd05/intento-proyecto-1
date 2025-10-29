@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   // Función para cargar el usuario actual
   const loadUser = async () => {
     try {
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token');
       if (!token) {
         setLoading(false);
         return;
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error cargando usuario:', error);
       // Si hay error, limpiar token y estado
-      localStorage.removeItem('access_token');
+      sessionStorage.removeItem('access_token');
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   // Función para hacer login
   const login = (userData, token) => {
-    localStorage.setItem('access_token', token);
+    sessionStorage.setItem('access_token', token);
     clearCurrentUserCache();
     setUser(userData);
     setIsAuthenticated(true);
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   // Función para hacer logout
   const logout = () => {
-    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token');
     clearCurrentUserCache();
     setUser(null);
     setIsAuthenticated(false);
@@ -84,7 +84,7 @@ export const useCurrentUser = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('access_token');
+        const token = sessionStorage.getItem('access_token');
         if (!token) {
           setLoading(false);
           return;
@@ -97,7 +97,7 @@ export const useCurrentUser = () => {
         setError(err.message);
         // Si el token es inválido, limpiarlo
         if (err.message.includes('Sesión expirada')) {
-          localStorage.removeItem('access_token');
+          sessionStorage.removeItem('access_token');
         }
       } finally {
         setLoading(false);
