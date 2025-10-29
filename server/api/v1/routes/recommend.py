@@ -1,23 +1,12 @@
 from fastapi import APIRouter, Depends, Query, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 from server.controllers.recommend_controller import recommend_songs_by_emotion
-from server.services.spotify import create_playlist
-from server.db.session import get_db
-from server.db.models.playlist import Playlist
-from server.utils.auth import get_current_user_from_token
-from pydantic import BaseModel
 import requests
 import json
 import os
 import random
 
 router = APIRouter(prefix="/recommend", tags=["recommendations"])
-
-
-class CreatePlaylistRequest(BaseModel):
-    emotion: str
-    track_uris: list
-    analisis_id: int = None  # ID del análisis asociado (opcional)
 
 @router.get("/")
 def get_recommendations(
@@ -183,69 +172,3 @@ def test_mockup():
             "status": "error",
             "error": str(e)
         }
-
-
-@router.post("/create-playlist")
-def create_spotify_playlist(
-    request: Request,
-    body: CreatePlaylistRequest,
-    authorization: str = Header(..., alias="Authorization"),
-    db: Session = Depends(get_db)
-):
-    """
-    Crea una playlist en Spotify con las canciones proporcionadas.
-    Requiere que el usuario esté autenticado con Spotify.
-
-    - emotion: Emoción detectada (para el nombre de la playlist)
-    - track_uris: Lista de URIs de Spotify (ej: ["spotify:track:abc123", ...])
-    - analisis_id: ID del análisis asociado (opcional)
-    """
-    # Obtener usuario autenticado
-    user = get_current_user_from_token(db, authorization)
-
-    # Obtener token de Spotify del cookie
-    spotify_token = request.cookies.get('spotify_access_token')
-
-    if not spotify_token:
-        raise HTTPException(
-            status_code=401,
-            detail="Debes conectar tu cuenta de Spotify para guardar playlists"
-        )
-
-    if not body.track_uris:
-        raise HTTPException(
-            status_code=400,
-            detail="Debes proporcionar al menos una canción para crear la playlist"
-        )
-
-    # Llamar al servicio para crear la playlist en Spotify
-    result = create_playlist(spotify_token, body.emotion, body.track_uris)
-
-    if not result.get("success"):
-        error_message = result.get("message", "Error desconocido")
-
-        # Si el token expiró, devolver error 401
-        if result.get("error") == "token_expired":
-            raise HTTPException(status_code=401, detail=error_message)
-
-        # Para otros errores, devolver 500
-        raise HTTPException(status_code=500, detail=error_message)
-
-    # Guardar la playlist en la BD
-    playlist = Playlist(
-        analisis_id=body.analisis_id,
-        user_id=user.id,
-        emotion=body.emotion,
-        name=result.get("playlist_name", f"Playlist {body.emotion}"),
-        spotify_id=result.get("playlist_id"),
-        spotify_url=result.get("playlist_url"),
-        track_count=len(body.track_uris),
-        saved_to_spotify=True
-    )
-    db.add(playlist)
-    db.commit()
-    db.refresh(playlist)
-
-    result["db_playlist_id"] = playlist.id
-
-    return result

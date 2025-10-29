@@ -59,15 +59,8 @@
   font-weight: 500;
 }
 
-/* Contenedor de botones de acción */
-.action-buttons-group {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-/* Botones de acción */
-.action-button {
+/* Botón Nuevo Análisis al inicio */
+.action-button.new-analysis {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -88,17 +81,7 @@
   -webkit-backdrop-filter: blur(10px);
 }
 
-.action-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.action-button svg {
-  width: 20px;
-  height: 20px;
-}
-
-.action-button::before {
+.action-button.new-analysis::before {
   content: '';
   position: absolute;
   top: 0;
@@ -114,37 +97,23 @@
   transition: left 0.5s;
 }
 
-.action-button:hover::before {
+.action-button.new-analysis:hover::before {
   left: 100%;
 }
 
-.action-button:hover:not(:disabled) {
+.action-button.new-analysis:hover {
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
-.action-button:hover:not(:disabled) svg {
-  transform: scale(1.15);
+.action-button.new-analysis svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.3s ease;
 }
 
-.action-button.new-analysis:hover:not(:disabled) svg {
+.action-button.new-analysis:hover svg {
   transform: scale(1.15) rotate(-15deg);
-}
-
-/* Spinner de loading para botones */
-.button-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .results-grid {
