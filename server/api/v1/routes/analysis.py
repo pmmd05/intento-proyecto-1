@@ -4,6 +4,7 @@ from typing import Dict
 import random
 import base64
 import io
+from decimal import Decimal
 from PIL import Image
 from sqlalchemy.orm import Session
 from server.services.aws_rekognition_service import rekognition_service
@@ -220,12 +221,12 @@ async def analyze_emotion_base64(
 
                 print(f"✅ Análisis Rekognition: {app_top} ({emotion_data['confidence']*100:.1f}%)")
 
-                # Guardar análisis en BD
+                # Guardar análisis en BD - Convertir float a Decimal para PostgreSQL
                 analisis = Analisis(
                     user_id=current_user.id,
-                    emotion=app_top,
-                    confidence=round(top_conf, 4),
-                    emotions_data=emotions_detected
+                    emotion=app_top if app_top else "unknown",
+                    confidence=Decimal(str(round(top_conf, 4))),
+                    emotions_data={k: float(v) for k, v in emotions_detected.items()}
                 )
                 db.add(analisis)
                 db.commit()
@@ -248,12 +249,12 @@ async def analyze_emotion_base64(
         emotion_data["message"] = f"Análisis completado exitosamente (modo mockup)"
         print(f"✅ Análisis mockup: {emotion_key} ({emotion_data['confidence']*100:.1f}%)")
 
-        # Guardar análisis en BD
+        # Guardar análisis en BD - Convertir float a Decimal para PostgreSQL
         analisis = Analisis(
             user_id=current_user.id,
             emotion=emotion_data['emotion'],
-            confidence=emotion_data['confidence'],
-            emotions_data=emotion_data['emotions_detected']
+            confidence=Decimal(str(emotion_data['confidence'])),
+            emotions_data={k: float(v) for k, v in emotion_data['emotions_detected'].items()}
         )
         db.add(analisis)
         db.commit()
